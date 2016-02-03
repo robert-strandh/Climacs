@@ -1,0 +1,34 @@
+*Note*: Climacs depends on McCLIM, a graphic toolkit for Common Lisp
+(http://www.cliki.net/McCLIM) and CLX, a low level, Xlib-like library
+on top of which McCLIM is built (http://www.cliki.net/CLX). Make sure
+these are properly installed on your system before attempting to install
+Climacs.  You can install those libraries using Quicklisp.
+
+Install instructions for Climacs.  We assume that if you have gotten
+this far, it means that you have either extracted a tar file with
+everything in it, or checked out the files from some GIT repository.
+
+0. You need to install the `flexichain' system.  This installation is
+   best done with Quicklisp.
+      
+1. Make sure ASDF can find the file named climacs.asd.
+
+2. Start Lisp either from the shell or from Emacs
+
+3. (asdf:load-system :climacs)
+
+   This command will compile and load the source files in the right
+   order.
+
+4. (climacs:climacs)
+
+   Start the Climacs editor. Alternatively, try (climacs:climacs
+   :new-process t), to start Climacs in a new thread.
+ 
+Finally, please notice that as we develop Climacs, we occasionally
+find bugs in McCLIM, or ask for functionality of McCLIM that can be
+useful to us.
+
+For that reason, Climacs often depends on very fresh versions of
+McCLIM.  If you discover a bug, please try to install a new version of
+McCLIM before looking too hard for any other reasons.
