@@ -1,0 +1,29 @@
+This repository contains the code for the first version of the Climacs
+text editor.  We are working on replacing this version of Climacs by
+the second version, called Second Climacs.  However, this version is
+still usable, but not perfect in that it does have defects.
+
+There are several reasons why we are working on Second Climacs to
+replace this one:
+
+  * The representation of the buffer is not so well adapted to
+    features such as incremental parsing.
+
+  * The Common Lisp parser, while better than that of Emacs, is still
+    not good enough, and totally non-maintainable.  We think we know
+    how to make a better one.
+
+  * Climacs is intimately tied to McCLIM.  We would like to isolate
+    the GUI from the rest of the code so as to make it easier to
+    create different GUIs.
+
+  * We want to improve the entire infrastructure for incremental
+    parsing of the buffer contents.
+
+  * etc.
+
+For the original README text, see the file ORIGINAL-README.
+
+This repository does not necessarily reflect that latest state of the
+old CVS repository.  We have attempted to improve the file hierarchy
+and clean up the code.
