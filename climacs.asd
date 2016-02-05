@@ -29,4 +29,5 @@
   :serial t
   :components
   ((:file "packages")
-   (:file "climacs")))
+   (:file "climacs")
+   (:file "core")))
