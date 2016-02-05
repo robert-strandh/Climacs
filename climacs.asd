@@ -28,4 +28,5 @@
   :depends-on (:mcclim :flexichain)
   :serial t
   :components
-  ((:file "packages")))
+  ((:file "packages")
+   (:file "climacs")))
