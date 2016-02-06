@@ -30,4 +30,5 @@
   :components
   ((:file "packages")
    (:file "climacs")
-   (:file "core")))
+   (:file "core")
+   (:file "developer-commands")))
