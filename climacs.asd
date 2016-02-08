@@ -31,4 +31,5 @@
   ((:file "packages")
    (:file "climacs")
    (:file "core")
-   (:file "developer-commands")))
+   (:file "developer-commands")
+   (:file "file-commands")))
