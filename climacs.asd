@@ -33,4 +33,5 @@
    (:file "core")
    (:file "developer-commands")
    (:file "file-commands")
-   (:file "groups")))
+   (:file "groups")
+   (:file "gui")))
