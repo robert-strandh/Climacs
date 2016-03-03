@@ -22,7 +22,7 @@
 ;;; Free Software Foundation, Inc., 59 Temple Place - Suite 330,
 ;;; Boston, MA  02111-1307  USA.
 
-;;; Syntax module for analysing C
+;;; Syntax module for analyzing C source code.
 
 (in-package :climacs-c-syntax)
 
