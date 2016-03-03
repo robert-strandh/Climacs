@@ -24,7 +24,7 @@
 
 ;;; Syntax module for analyzing C source code.
 
-(in-package :climacs-c-syntax)
+(cl:in-package #:climacs-c-syntax)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
