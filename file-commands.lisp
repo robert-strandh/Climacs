@@ -32,17 +32,19 @@
 
 (define-command (com-reparse-attribute-list :name t :command-table buffer-table)
     ()
-  "Reparse the current buffer's attribute list.
-An attribute list is a line of keyword-value pairs, each keyword separated
-from the corresponding value by a colon. If another keyword-value pair
-follows, the value should be terminated by a colon. The attribute list
-is surrounded by '-*-' sequences, but the opening '-*-' need not be at the
-beginning of the line. Climacs looks for the attribute list
-on the first or second non-blank line of the file.
-
-An example attribute-list is:
-
-;; -*- Syntax: Lisp; Base: 10 -*- "
+  #.(format nil "Reparse the current buffer's attribute list.~@
+                 An attribute list is a line of keyword-value pairs,~@
+                 each keyword separated from the corresponding value~@
+                 by a colon. If another keyword-value pair follows,~@
+                 the value should be terminated by a colon.~@
+                 The attribute list is surrounded by '-*-' sequences,~@
+                 but the opening '-*-' need not be at the beginning~@
+                 of the line. Climacs looks for the attribute list on~@
+                 the first or second non-blank line of the file.~@
+                 ~@
+                 An example attribute-list is:~@
+                 ~@
+                 ;; -*- Syntax: Lisp; Base: 10 -*-")
   (evaluate-attribute-line (current-buffer)))
 
 (define-command (com-update-attribute-list :name t :command-table buffer-table)
