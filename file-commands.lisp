@@ -30,7 +30,8 @@
 
 (in-package #:climacs-commands)
 
-(define-command (com-reparse-attribute-list :name t :command-table buffer-table)
+(clim:define-command
+    (com-reparse-attribute-list :name t :command-table buffer-table)
     ()
   #.(format nil "Reparse the current buffer's attribute list.~@
                  An attribute list is a line of keyword-value pairs,~@
@@ -47,7 +48,8 @@
                  ;; -*- Syntax: Lisp; Base: 10 -*-")
   (evaluate-attribute-line (current-buffer)))
 
-(define-command (com-update-attribute-list :name t :command-table buffer-table)
+(clim:define-command
+    (com-update-attribute-list :name t :command-table buffer-table)
     ()
   "Update the current buffers attribute list to reflect the
 settings of the syntax of the buffer.
@@ -70,7 +72,7 @@ appropriate for the syntax of the buffer."
   (update-attribute-line (current-buffer))
   (evaluate-attribute-line (current-buffer)))
 
-(define-command (com-insert-file :name t :command-table buffer-table)
+(clim:define-command (com-insert-file :name t :command-table buffer-table)
     ((filename 'pathname :prompt "Insert File"
                          :default (directory-of-buffer (current-buffer))
                          :default-type 'pathname
@@ -91,7 +93,8 @@ Leaves mark after the inserted contents."
 	 'buffer-table
 	 '((#\x :control) (#\i :control)))
 
-(define-command (com-revert-buffer :name t :command-table buffer-table) ()
+(clim:define-command (com-revert-buffer :name t :command-table buffer-table)
+    ()
   "Replace the contents of the current buffer with the visited file.
 Signals an error if the file does not exist."
   (let* ((save (offset (point)))
@@ -124,7 +127,8 @@ Signals an error if the file does not exist."
 		(display-message "No such file: ~A" file-name)
 		(beep))))))
 
-(define-command (com-load-file :name t :command-table base-table) ()
+(clim:define-command (com-load-file :name t :command-table base-table)
+    ()
   "Prompt for a filename and CL:LOAD that file.
 Signals and error if the file does not exist."
   (let ((filepath (accept 'pathname :prompt "Load File")))
@@ -138,7 +142,7 @@ Signals and error if the file does not exist."
 ;;; 
 ;;; Buffer commands
 
-(define-command (com-toggle-read-only :name t :command-table buffer-table)
+(clim:define-command (com-toggle-read-only :name t :command-table buffer-table)
     ((buffer 'buffer :default (current-buffer *application-frame*)))
   (setf (read-only-p buffer) (not (read-only-p buffer))))
 
@@ -148,7 +152,7 @@ Signals and error if the file does not exist."
     (object)
   (list object))
 
-(define-command (com-toggle-modified :name t :command-table buffer-table)
+(clim:define-command (com-toggle-modified :name t :command-table buffer-table)
     ((buffer 'buffer :default (current-buffer *application-frame*)))
   (setf (needs-saving buffer) (not (needs-saving buffer))))
 
