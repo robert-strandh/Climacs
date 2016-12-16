@@ -46,7 +46,7 @@
                  An example attribute-list is:~@
                  ~@
                  ;; -*- Syntax: Lisp; Base: 10 -*-")
-  (climacs-core:evaluate-attribute-line (current-buffer)))
+  (climacs-core:evaluate-attribute-line (esa:current-buffer)))
 
 (clim:define-command
     (com-update-attribute-list :name t :command-table buffer-table)
@@ -71,12 +71,12 @@
                  ~@
                  This command automatically comments the attribute~@
                  line as appropriate for the syntax of the buffer.")
-  (climacs-core:update-attribute-line (current-buffer))
-  (climacs-core:evaluate-attribute-line (current-buffer)))
+  (climacs-core:update-attribute-line (esa:current-buffer))
+  (climacs-core:evaluate-attribute-line (esa:current-buffer)))
 
 (clim:define-command (com-insert-file :name t :command-table buffer-table)
     ((filename 'pathname :prompt "Insert File"
-                         :default (directory-of-buffer (current-buffer))
+                         :default (directory-of-buffer (esa:current-buffer))
                          :default-type 'pathname
                          :insert-default t))
   #.(format nil "Prompt for a filename and insert its contents at point.~@
@@ -85,7 +85,7 @@
     (setf (mark) (clone-mark (point) :left))
     (with-open-file (stream filename :direction :input)
       (input-from-stream stream
-                         (current-buffer)
+                         (esa:current-buffer)
                          (offset (point))))
     (psetf (offset (mark)) (offset (point))
            (offset (point)) (offset (mark))))
@@ -101,21 +101,23 @@
                  with the contents of the visited file.~@
                  Signals an error if the file does not exist.")
   (let* ((save (offset (point)))
-         (filepath (filepath (current-buffer))))
-    (when (accept 'boolean :prompt (format nil "Revert buffer from file ~A?"
-					   filepath))
+         (filepath (filepath (esa:current-buffer))))
+    (when (clim:accept 'boolean
+		       :prompt (format nil
+				       "Revert buffer from file ~A?"
+				       filepath))
       (cond ((directory-pathname-p filepath)
 	     (display-message "~A is a directory name." filepath)
 	     (beep))
 	    ((probe-file filepath)
-	     (unless (check-file-times (current-buffer)
+	     (unless (check-file-times (esa:current-buffer)
 				       filepath "Revert" "reverted")
 	       (return-from com-revert-buffer))
-	     (erase-buffer (current-buffer))
+	     (erase-buffer (esa:current-buffer))
 	     (with-open-file (stream filepath :direction :input)
-	       (input-from-stream stream (current-buffer) 0))
-	     (setf (offset (point)) (min (size (current-buffer)) save)
-		   (file-saved-p (current-buffer)) nil))
+	       (input-from-stream stream (esa:current-buffer) 0))
+	     (setf (offset (point)) (min (size (esa:current-buffer)) save)
+		   (file-saved-p (esa:current-buffer)) nil))
 	    (t
 	     (display-message "No file ~A" filepath)
 	     (beep))))))
@@ -135,7 +137,7 @@
     ()
   #.(format nil "Prompt for a filename and CL:LOAD that file.~@
                  Signals and error if the file does not exist.")
-  (let ((filepath (accept 'pathname :prompt "Load File")))
+  (let ((filepath (clim:accept 'pathname :prompt "Load File")))
     (load-file filepath)))
 
 (esa:set-key 'com-load-file
@@ -147,7 +149,7 @@
 ;;; Buffer commands
 
 (clim:define-command (com-toggle-read-only :name t :command-table buffer-table)
-    ((buffer 'buffer :default (current-buffer *application-frame*)))
+    ((buffer 'buffer :default (esa:current-buffer *application-frame*)))
   (setf (esa-buffer:read-only-p buffer)
 	(not (esa-buffer:read-only-p buffer))))
 
@@ -158,7 +160,7 @@
   (list object))
 
 (clim:define-command (com-toggle-modified :name t :command-table buffer-table)
-    ((buffer 'buffer :default (current-buffer *application-frame*)))
+    ((buffer 'buffer :default (esa:current-buffer *application-frame*)))
   (setf (esa-buffer:needs-saving buffer)
 	(not (esa-buffer:needs-saving buffer))))
 
