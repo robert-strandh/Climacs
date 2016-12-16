@@ -31,10 +31,11 @@
 (cl:in-package #:climacs-commands)
 
 (define-command (com-not-modified :name t :command-table buffer-table) ()
-  "Clear the modified flag for the current buffer.
-The modified flag is automatically set when the contents 
-of the buffer are changed. This flag is consulted, for instance, 
-when deciding whether to prompt you to save the buffer before killing it."
+  #.(format nil "Clear the modified flag for the current buffer.~@
+                 The modified flag is automatically set when the~@
+                 contents of the buffer are changed. This flag is~@
+                 consulted, for instance, when deciding whether~@
+                 to prompt you to save the buffer before killing it.")
   (setf (needs-saving (current-buffer)) nil))
 
 (set-key 'com-not-modified
@@ -42,12 +43,13 @@ when deciding whether to prompt you to save the buffer before killing it."
 	 '((#\~ :meta)))
 
 (define-command (com-what-cursor-position :name t :command-table info-table) ()
-  "Print information about point.
-Gives the character after point (name and octal, decimal and hexidecimal charcode), 
-the offset of point, the total objects in the buffer, 
-and the percentage of the buffers objects before point.
-
-FIXME: gives no information at end of buffer."
+  #.(format nil "Print information about point.~@
+                 Gives the character after point (name and octal,~@
+                 decimal and hexidecimal charcode), the offset of point,~@
+                 the total objects in the buffer, and the percentage ~@
+                 of the buffers objects before point.~@
+                 ~@
+                 FIXME: gives no information at end of buffer.")
   (let* ((char (or (end-of-buffer-p (point)) (object-after (point))))
 	 (column (column-number (point))))
     (display-message "Char: ~:[none~*~;~:*~:C (#o~O ~:*~D ~:*#x~X)~] point=~D of ~D (~D%) column ~D"
@@ -75,8 +77,9 @@ FIXME: gives no information at end of buffer."
 (define-command (com-set-syntax :name t :command-table buffer-table) 
     ((syntax 'syntax
       :prompt "Name of syntax"))
-  "Prompts for a syntax to set for the current buffer.
-   Setting a syntax will cause the buffer to be reparsed using the new syntax."
+  #.(format nil "Prompts for a syntax to set for the current buffer.~@
+                 Setting a syntax will cause the buffer to be~@
+                 reparsed using the new syntax.")
   (set-syntax (current-view) syntax))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
