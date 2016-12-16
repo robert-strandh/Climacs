@@ -79,8 +79,8 @@
                          :default (directory-of-buffer (current-buffer))
                          :default-type 'pathname
                          :insert-default t))
-  "Prompt for a filename and insert its contents at point.
-Leaves mark after the inserted contents."
+  #.(format nil "Prompt for a filename and insert its contents at point.~@
+                 Leaves mark after the inserted contents.")
   (when (probe-file filename)
     (setf (mark) (clone-mark (point) :left))
     (with-open-file (stream filename :direction :input)
@@ -97,8 +97,9 @@ Leaves mark after the inserted contents."
 
 (clim:define-command (com-revert-buffer :name t :command-table buffer-table)
     ()
-  "Replace the contents of the current buffer with the visited file.
-Signals an error if the file does not exist."
+  #.(format nil "Replace the contents of the current buffer~@
+                 with the contents of the visited file.~@
+                 Signals an error if the file does not exist.")
   (let* ((save (offset (point)))
          (filepath (filepath (current-buffer))))
     (when (accept 'boolean :prompt (format nil "Revert buffer from file ~A?"
@@ -131,8 +132,8 @@ Signals an error if the file does not exist."
 
 (clim:define-command (com-load-file :name t :command-table base-table)
     ()
-  "Prompt for a filename and CL:LOAD that file.
-Signals and error if the file does not exist."
+  #.(format nil "Prompt for a filename and CL:LOAD that file.~@
+                 Signals and error if the file does not exist.")
   (let ((filepath (accept 'pathname :prompt "Load File")))
     (load-file filepath)))
 
