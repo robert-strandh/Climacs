@@ -91,9 +91,9 @@
            (offset (point)) (offset (mark))))
   (redisplay-frame-panes *application-frame*))
 
-(set-key `(com-insert-file ,*unsupplied-argument-marker*)
-	 'buffer-table
-	 '((#\x :control) (#\i :control)))
+(esa:set-key `(com-insert-file ,*unsupplied-argument-marker*)
+	     'buffer-table
+	     '((#\x :control) (#\i :control)))
 
 (clim:define-command (com-revert-buffer :name t :command-table buffer-table)
     ()
@@ -138,9 +138,9 @@
   (let ((filepath (accept 'pathname :prompt "Load File")))
     (load-file filepath)))
 
-(set-key 'com-load-file
-	 'base-table
-	 '((#\c :control) (#\l :control)))
+(esa:set-key 'com-load-file
+	     'base-table
+	     '((#\c :control) (#\l :control)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; 
@@ -148,7 +148,8 @@
 
 (clim:define-command (com-toggle-read-only :name t :command-table buffer-table)
     ((buffer 'buffer :default (current-buffer *application-frame*)))
-  (setf (read-only-p buffer) (not (read-only-p buffer))))
+  (setf (esa-buffer:read-only-p buffer)
+	(not (esa-buffer:read-only-p buffer))))
 
 (clim:define-presentation-to-command-translator toggle-read-only
     (read-only com-toggle-read-only buffer-table
@@ -158,7 +159,8 @@
 
 (clim:define-command (com-toggle-modified :name t :command-table buffer-table)
     ((buffer 'buffer :default (current-buffer *application-frame*)))
-  (setf (needs-saving buffer) (not (needs-saving buffer))))
+  (setf (esa-buffer:needs-saving buffer)
+	(not (esa-buffer:needs-saving buffer))))
 
 (clim:define-presentation-to-command-translator toggle-modified
     (modified com-toggle-modified buffer-table
