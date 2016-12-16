@@ -694,3 +694,43 @@ pane to a clone of the view in `orig-pane', provided that
 (defmethod invoke-with-help-stream ((frame climacs) title continuation)
   (with-typeout-view (stream title t)
     (funcall continuation stream)))
+
+(defmethod frame-make-new-buffer ((application-frame climacs)
+                                  &key (name "*scratch*"))
+  (make-instance 'climacs-buffer :name name))
+
+(defmethod frame-exit :around ((frame climacs) #-mcclim &key)
+  (dolist (view (views frame))
+    (handler-case
+        (when (and (climacs-core:buffer-of-view-needs-saving view)
+                   (handler-case (accept 'boolean
+                                  :prompt (format nil "Save buffer of view: ~a ?" (name view)))
+                     (error () (progn (beep)
+                                      (display-message "Invalid answer")
+                                      (return-from frame-exit nil)))))
+          (save-buffer (buffer view)))
+      (file-error (e)
+        (display-message "~A (hit a key to continue)" e)
+        (read-gesture))))
+  (when (or (notany #'climacs-core:buffer-of-view-needs-saving (views frame))
+	    (handler-case (accept 'boolean :prompt "Modified buffers of views exist.  Quit anyway?")
+	      (error () (progn (beep)
+			       (display-message "Invalid answer")
+			       (return-from frame-exit nil)))))
+    (call-next-method)))
+
+(defmethod switch-to-view ((drei climacs-pane) (view drei-view))
+  (setf (view drei) view))
+
+(defmethod frame-find-file ((application-frame climacs) filepath)
+  (climacs-core:find-file-impl filepath nil))
+
+(defmethod frame-find-file-read-only ((application-frame climacs) filepath)
+  (climacs-core:find-file-impl filepath t))
+
+(defmethod frame-set-visited-filename ((application-frame climacs) filepath buffer)
+  (setf (filepath buffer) (pathname filepath)
+	(file-saved-p buffer) nil
+	(file-write-time buffer) nil
+	(name buffer) (climacs-core:filepath-filename filepath)
+	(needs-saving buffer) t))

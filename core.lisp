@@ -17,10 +17,6 @@
 ;;; 
 ;;; Buffer handling
 
-(defmethod frame-make-new-buffer ((application-frame climacs)
-                                  &key (name "*scratch*"))
-  (make-instance 'climacs-buffer :name name))
-
 (define-presentation-method present ((object drei-view) (type view)
                                      stream (view textual-view)
                                      &key acceptably for-context-type)
@@ -52,9 +48,6 @@
 (defgeneric switch-to-view (drei view)
   (:documentation "High-level function for changing the view
 displayed by a Drei instance."))
-
-(defmethod switch-to-view ((drei climacs-pane) (view drei-view))
-  (setf (view drei) view))
 
 (defmethod switch-to-view (pane (name string))
   (let ((view (find name (views (pane-frame pane))
@@ -352,12 +345,6 @@ file if necessary."
                  (beginning-of-buffer (point view))
                  buffer))))))
 
-(defmethod frame-find-file ((application-frame climacs) filepath)
-  (find-file-impl filepath nil))
-
-(defmethod frame-find-file-read-only ((application-frame climacs) filepath)
-  (find-file-impl filepath t))
-
 (defun directory-of-buffer (buffer)
   "Extract the directory part of the filepath to the file in BUFFER.
 If BUFFER does not have a filepath, the path to the user's home
@@ -367,13 +354,6 @@ directory will be returned."
    (pathname-directory
     (or (filepath buffer)
 	(user-homedir-pathname)))))
-
-(defmethod frame-set-visited-filename ((application-frame climacs) filepath buffer)
-  (setf (filepath buffer) (pathname filepath)
-	(file-saved-p buffer) nil
-	(file-write-time buffer) nil
-	(name buffer) (filepath-filename filepath)
-	(needs-saving buffer) t))
 
 (defun check-file-times (buffer filepath question answer)
   "Return NIL if filepath newer than buffer and user doesn't want
@@ -388,23 +368,3 @@ to overwrite."
 	    (progn (display-message "~a not ~a" filepath answer)
 		   nil))
 	t)))
-
-(defmethod frame-exit :around ((frame climacs) #-mcclim &key)
-  (dolist (view (views frame))
-    (handler-case
-        (when (and (buffer-of-view-needs-saving view)
-                   (handler-case (accept 'boolean
-                                  :prompt (format nil "Save buffer of view: ~a ?" (name view)))
-                     (error () (progn (beep)
-                                      (display-message "Invalid answer")
-                                      (return-from frame-exit nil)))))
-          (save-buffer (buffer view)))
-      (file-error (e)
-        (display-message "~A (hit a key to continue)" e)
-        (read-gesture))))
-  (when (or (notany #'buffer-of-view-needs-saving (views frame))
-	    (handler-case (accept 'boolean :prompt "Modified buffers of views exist.  Quit anyway?")
-	      (error () (progn (beep)
-			       (display-message "Invalid answer")
-			       (return-from frame-exit nil)))))
-    (call-next-method)))
