@@ -133,7 +133,9 @@
            #:group-views
            #:ensure-group-views
            #:select-group
-           #:display-group-contents)
+           #:display-group-contents
+	   #:buffer-of-view-needs-saving
+	   #:find-file-impl)
   (:documentation "Package for editor functionality that is
   syntax-aware, but yet not specific to certain
   syntaxes. Contains stuff like indentation, filling and other
