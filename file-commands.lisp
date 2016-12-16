@@ -28,7 +28,7 @@
 ;;; basic commands (such as Find File) are defined in ESA and made
 ;;; available to Climacs via the ESA-IO-TABLE command table.
 
-(in-package #:climacs-commands)
+(cl:in-package #:climacs-commands)
 
 (clim:define-command
     (com-reparse-attribute-list :name t :command-table buffer-table)
@@ -146,7 +146,7 @@ Signals and error if the file does not exist."
     ((buffer 'buffer :default (current-buffer *application-frame*)))
   (setf (read-only-p buffer) (not (read-only-p buffer))))
 
-(define-presentation-to-command-translator toggle-read-only
+(clim:define-presentation-to-command-translator toggle-read-only
     (read-only com-toggle-read-only buffer-table
                :gesture :menu)
     (object)
@@ -156,7 +156,7 @@ Signals and error if the file does not exist."
     ((buffer 'buffer :default (current-buffer *application-frame*)))
   (setf (needs-saving buffer) (not (needs-saving buffer))))
 
-(define-presentation-to-command-translator toggle-modified
+(clim:define-presentation-to-command-translator toggle-modified
     (modified com-toggle-modified buffer-table
               :gesture :menu)
     (object)
