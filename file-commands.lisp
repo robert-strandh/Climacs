@@ -1,6 +1,6 @@
 ;;; -*- Mode: Lisp; Package: CLIMACS-GUI -*-
 
-;;;  (c) copyright 2004-2005 by
+;;;  (c) copyright 2004-2005, 2016 by
 ;;;           Robert Strandh (robert.strandh@gmail.com)
 ;;;  (c) copyright 2004-2005 by
 ;;;           Elliott Johnson (ejohnson@fasl.info)
@@ -46,7 +46,7 @@
                  An example attribute-list is:~@
                  ~@
                  ;; -*- Syntax: Lisp; Base: 10 -*-")
-  (evaluate-attribute-line (current-buffer)))
+  (climacs-core:evaluate-attribute-line (current-buffer)))
 
 (clim:define-command
     (com-update-attribute-list :name t :command-table buffer-table)
@@ -71,8 +71,8 @@
                  ~@
                  This command automatically comments the attribute~@
                  line as appropriate for the syntax of the buffer.")
-  (update-attribute-line (current-buffer))
-  (evaluate-attribute-line (current-buffer)))
+  (climacs-core:update-attribute-line (current-buffer))
+  (climacs-core:evaluate-attribute-line (current-buffer)))
 
 (clim:define-command (com-insert-file :name t :command-table buffer-table)
     ((filename 'pathname :prompt "Insert File"
