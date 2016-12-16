@@ -84,12 +84,12 @@
   (when (probe-file filename)
     (setf (mark) (clone-mark (point) :left))
     (with-open-file (stream filename :direction :input)
-      (input-from-stream stream
-                         (esa:current-buffer)
-                         (offset (point))))
+      (climacs-core:input-from-stream stream
+				      (esa:current-buffer)
+				      (offset (point))))
     (psetf (offset (mark)) (offset (point))
            (offset (point)) (offset (mark))))
-  (redisplay-frame-panes *application-frame*))
+  (clim:redisplay-frame-panes *application-frame*))
 
 (esa:set-key `(com-insert-file ,*unsupplied-argument-marker*)
 	     'buffer-table
@@ -106,32 +106,32 @@
 		       :prompt (format nil
 				       "Revert buffer from file ~A?"
 				       filepath))
-      (cond ((directory-pathname-p filepath)
-	     (display-message "~A is a directory name." filepath)
-	     (beep))
+      (cond ((climacs-core:directory-pathname-p filepath)
+	     (esa:display-message "~A is a directory name." filepath)
+	     (clim:beep))
 	    ((probe-file filepath)
 	     (unless (check-file-times (esa:current-buffer)
 				       filepath "Revert" "reverted")
 	       (return-from com-revert-buffer))
 	     (erase-buffer (esa:current-buffer))
 	     (with-open-file (stream filepath :direction :input)
-	       (input-from-stream stream (esa:current-buffer) 0))
+	       (climacs-core:input-from-stream stream (esa:current-buffer) 0))
 	     (setf (offset (point)) (min (size (esa:current-buffer)) save)
-		   (file-saved-p (esa:current-buffer)) nil))
+		   (esa-buffer:file-saved-p (esa:current-buffer)) nil))
 	    (t
-	     (display-message "No file ~A" filepath)
-	     (beep))))))
+	     (esa:display-message "No file ~A" filepath)
+	     (clim:beep))))))
 
 (defun load-file (file-name)
-  (cond ((directory-pathname-p file-name)
-	 (display-message "~A is a directory name." file-name)
-	 (beep))
+  (cond ((climacs-core:directory-pathname-p file-name)
+	 (esa:display-message "~A is a directory name." file-name)
+	 (clim:beep))
 	(t
 	 (cond ((probe-file file-name)
 		(load file-name))
 	       (t
-		(display-message "No such file: ~A" file-name)
-		(beep))))))
+		(esa:display-message "No such file: ~A" file-name)
+		(clim:beep))))))
 
 (clim:define-command (com-load-file :name t :command-table base-table)
     ()
