@@ -90,11 +90,13 @@
     ((name 'string :prompt "Name")
      (views '(sequence view) :prompt "Views"))
   (when (or (not (get-group name))
-            (accept 'boolean :prompt "Group already exists. Overwrite existing group?"))
+            (accept 'boolean
+		    :prompt "Group already exists. Overwrite existing group?"))
     (add-group name views))
   (select-group (get-group name)))
 
-(set-key `(com-define-group ,*unsupplied-argument-marker* ,*unsupplied-argument-marker*)
+(set-key `(com-define-group ,*unsupplied-argument-marker*
+			    ,*unsupplied-argument-marker*)
          'global-climacs-table
          '((#\x :control) (#\g) (#\d)))
 
@@ -102,11 +104,13 @@
     ((name 'string :prompt "Name")
      (pathnames '(sequence pathname) :prompt "Files"))
   (when (or (not (get-group name))
-            (accept 'boolean :prompt "Group already exists. Overwrite existing group?"))
+            (accept 'boolean
+		    :prompt "Group already exists. Overwrite existing group?"))
     (add-group name pathnames))
   (select-group (get-group name)))
 
-(set-key `(com-define-file-group ,*unsupplied-argument-marker* ,*unsupplied-argument-marker*)
+(set-key `(com-define-file-group ,*unsupplied-argument-marker*
+				 ,*unsupplied-argument-marker*)
          'global-climacs-table
          '((#\x :control) (#\g) (#\f)))
 
@@ -137,7 +141,9 @@
          'global-climacs-table
          '((#\x :control) (#\g) (#\c)))
 
-(define-command (com-list-group-contents :name t :command-table global-climacs-table)
+(define-command (com-list-group-contents
+		 :name t
+		 :command-table global-climacs-table)
     ()
   (with-minibuffer-stream (s)
     (format s "Active group designates: ")
