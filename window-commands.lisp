@@ -52,25 +52,25 @@
     ((clone-current-view 'boolean :default nil))
   (split-window-maybe-cloning t clone-current-view))
 
-(set-key `(com-split-window-vertically ,*numeric-argument-marker*)
-	 'window-table
-	 '((#\x :control) (#\2)))
+(esa:set-key `(com-split-window-vertically ,*numeric-argument-marker*)
+	     'window-table
+	     '((#\x :control) (#\2)))
 
 (define-command (com-split-window-horizontally :name t
                                                :command-table window-table)
     ((clone-current-view 'boolean :default nil))
   (split-window-maybe-cloning nil clone-current-view))
 
-(set-key `(com-split-window-horizontally ,*numeric-argument-marker*)
-	 'window-table
-	 '((#\x :control) (#\3)))
+(esa:set-key `(com-split-window-horizontally ,*numeric-argument-marker*)
+	     'window-table
+	     '((#\x :control) (#\3)))
 
 (define-command (com-other-window :name t :command-table window-table) ()
   (other-window))
 
-(set-key 'com-other-window
-	 'window-table
-	 '((#\x :control) (#\o)))
+(esa:set-key 'com-other-window
+	     'window-table
+	     '((#\x :control) (#\o)))
 
 (defun click-to-offset (window x y)
   (with-accessors ((top top) (bot bot)) (view window)
@@ -145,34 +145,34 @@
 (define-command (com-single-window :name t :command-table window-table) ()
   (single-window))
 
-(set-key 'com-single-window
-	 'window-table
-	 '((#\x :control) (#\1)))
+(esa:set-key 'com-single-window
+	     'window-table
+	     '((#\x :control) (#\1)))
 
 (define-command (com-scroll-other-window :name t :command-table window-table) ()
   (let ((other-window (second (windows *application-frame*))))
     (when other-window
       (page-down other-window (view other-window)))))
 
-(set-key 'com-scroll-other-window
-	 'window-table
-	 '((#\v :control :meta)))
+(esa:set-key 'com-scroll-other-window
+	     'window-table
+	     '((#\v :control :meta)))
 
 (define-command (com-scroll-other-window-up :name t :command-table window-table) ()
   (let ((other-window (second (windows *application-frame*))))
     (when other-window
       (page-up other-window (view other-window)))))
 
-(set-key 'com-scroll-other-window-up
-	 'window-table
-	 '((#\V :control :meta)))
+(esa:set-key 'com-scroll-other-window-up
+	     'window-table
+	     '((#\V :control :meta)))
 
 (define-command (com-delete-window :name t :command-table window-table) ()
   (delete-window))
 
-(set-key 'com-delete-window
-	 'window-table
-	 '((#\x :control) (#\0)))
+(esa:set-key 'com-delete-window
+	     'window-table
+	     '((#\x :control) (#\0)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; 
@@ -191,9 +191,9 @@ view (if any) as a default."
     (view-already-displayed (condition)
       (other-window (window condition)))))
 
-(set-key `(com-switch-to-view ,*unsupplied-argument-marker*)
-	 'window-table
-	 '((#\x :control) (#\b)))
+(esa:set-key `(com-switch-to-view ,*unsupplied-argument-marker*)
+	     'window-table
+	     '((#\x :control) (#\b)))
 
 (define-command (com-kill-view :name t :command-table window-table)
     ((view 'view :prompt "Kill view"
@@ -204,9 +204,9 @@ be prompted to do so before killing it. Uses the current view
 as a default."
   (kill-view view))
 
-(set-key `(com-kill-view ,*unsupplied-argument-marker*)
-	 'window-table
-	 '((#\x :control) (#\k)))
+(esa:set-key `(com-kill-view ,*unsupplied-argument-marker*)
+	     'window-table
+	     '((#\x :control) (#\k)))
 
 (define-menu-table window-menu-table (window-table)
   '(com-split-window-vertically nil)
