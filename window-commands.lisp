@@ -183,10 +183,10 @@
     ((view 'view :default (or (find (current-view) (views *application-frame*)
                                :test (complement #'eq))
                               (any-view))))
-  "Prompt for a view name and switch to that view.
-If the a view with that name does not exist, create a buffer-view
-with the name and switch to it. Uses the name of the next
-view (if any) as a default."
+  #.(format nil "Prompt for a view name and switch to that view.~@
+                 If the a view with that name does not exist,~@
+                 create a buffer-view with the name and switch to it.~@
+                 Uses the name of the next view (if any) as a default.")
   (handler-case (switch-to-view (current-window) view)
     (view-already-displayed (condition)
       (other-window (window condition)))))
@@ -198,17 +198,17 @@ view (if any) as a default."
 (define-command (com-kill-view :name t :command-table window-table)
     ((view 'view :prompt "Kill view"
                  :default (current-view)))
-  "Prompt for a view name and kill that view.
-If the view is of a buffer and the buffer needs saving, you will
-be prompted to do so before killing it. Uses the current view
-as a default."
+  #.(format nil "Prompt for a view name and kill that view.~@
+                 If the view is of a buffer and the buffer needs~@
+                 saving, prompt the user before killing it.~@
+                 Uses the current view as a default.")
   (kill-view view))
 
 (esa:set-key `(com-kill-view ,*unsupplied-argument-marker*)
 	     'window-table
 	     '((#\x :control) (#\k)))
 
-(define-menu-table window-menu-table (window-table)
+(esa-utils:define-menu-table window-menu-table (window-table)
   '(com-split-window-vertically nil)
   '(com-split-window-horizontally nil)
   'com-other-window
