@@ -35,9 +35,10 @@
 ;;; Commands for splitting windows
 
 (defun split-window-maybe-cloning (vertically-p clone-current-view-p)
-  "Split `(current-window)', vertically if `vertically-p' is true,
-horizontally otherwise. If `clone-current-view-p' is true, use a
-clone of `(current-view)' for the new window."
+  #.(format nil "If VERTICALLY-P is true, then split the current~@
+                 window vertially.  Otherwise split it horizontally.~@
+                 If CLONE-CURRENT-VIEW-P is true, then use a clone~@
+                 of the current window for the new window.")
   (handler-bind ((view-already-displayed
                   #'(lambda (condition)
                       (declare (ignore condition))
