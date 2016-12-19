@@ -37,4 +37,5 @@
    (:file "io")
    (:file "misc-commands")
    (:file "file-commands")
-   (:file "developer-commands")))
+   (:file "developer-commands")
+   (:file "window-commands")))
