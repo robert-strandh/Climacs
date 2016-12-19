@@ -79,10 +79,10 @@
 	     '((#\x :control) (#\o)))
 
 (defun click-to-offset (window x y)
-  (with-accessors ((top top) (bot bot)) (view window)
+  (with-accessors ((top top) (bot bot)) (clim:view window)
     (let ((new-x (floor x (stream-character-width window #\m)))
           (new-y (floor y (stream-line-height window)))
-          (buffer (buffer (view window))))
+          (buffer (buffer (clim:view window))))
       (loop for scan from (offset top)
 	    with lines = 0
 	    until (= scan (offset bot))
@@ -102,8 +102,8 @@
     ((window 'pane) (x 'integer) (y 'integer))
   (other-window window)
   (when (and (buffer-pane-p window)
-             (typep (view window) 'point-mark-view))
-    (setf (offset (point (view window)))
+             (typep (clim:view window) 'point-mark-view))
+    (setf (offset (point (clim:view window)))
 	  (click-to-offset window x y))))
 
 (define-presentation-to-command-translator blank-area-to-switch-to-this-window
@@ -118,7 +118,7 @@
     ((window 'pane) (x 'integer) (y 'integer))
   (when (and (buffer-pane-p window)
 	     (eq window (current-window)))
-    (setf (offset (mark (view window)))
+    (setf (offset (mark (clim:view window)))
 	  (click-to-offset window x y))
     (drei-commands::com-exchange-point-and-mark)
     (drei-commands::com-copy-region)))
@@ -134,7 +134,7 @@
     ((window 'pane) (x 'integer) (y 'integer))
   (when (buffer-pane-p window)
     (other-window window)
-    (setf (offset (point (view window)))
+    (setf (offset (point (clim:view window)))
 	  (click-to-offset window x y))
     (drei-commands::com-yank)))
 
@@ -164,7 +164,7 @@
     ()
   (let ((other-window (second (windows *application-frame*))))
     (when other-window
-      (page-down other-window (view other-window)))))
+      (page-down other-window (clim:view other-window)))))
 
 (esa:set-key 'com-scroll-other-window
 	     'window-table
@@ -176,7 +176,7 @@
     ()
   (let ((other-window (second (windows *application-frame*))))
     (when other-window
-      (page-up other-window (view other-window)))))
+      (page-up other-window (clim:view other-window)))))
 
 (esa:set-key 'com-scroll-other-window-up
 	     'window-table
