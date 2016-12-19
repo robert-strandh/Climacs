@@ -84,17 +84,17 @@
           (new-y (floor y (stream-line-height window)))
           (buffer (buffer (view window))))
       (loop for scan from (offset top)
-         with lines = 0
-         until (= scan (offset bot))
-         until (= lines new-y)
-         when (eql (buffer-object buffer scan) #\Newline)
-         do (incf lines)
-         finally (loop for columns from 0
-                    until (= scan (offset bot))
-                    until (eql (buffer-object buffer scan) #\Newline)
-                    until (= columns new-x)
-                    do (incf scan))
-         (return scan)))))
+	    with lines = 0
+	    until (= scan (offset bot))
+	    until (= lines new-y)
+	    when (eql (buffer-object buffer scan) #\Newline)
+	      do (incf lines)
+	    finally (loop for columns from 0
+			  until (= scan (offset bot))
+			  until (eql (buffer-object buffer scan) #\Newline)
+			  until (= columns new-x)
+			  do (incf scan))
+		    (return scan)))))
 
 (clim:define-command (com-switch-to-this-window
 		      :name nil
