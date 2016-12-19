@@ -38,9 +38,9 @@
                  to prompt you to save the buffer before killing it.")
   (setf (needs-saving (current-buffer)) nil))
 
-(set-key 'com-not-modified
-	 'buffer-table
-	 '((#\~ :meta)))
+(esa:set-key 'com-not-modified
+	     'buffer-table
+	     '((#\~ :meta)))
 
 (define-command (com-what-cursor-position :name t :command-table info-table) ()
   #.(format nil "Print information about point.~@
@@ -62,9 +62,9 @@
                          100)
 		     column)))
 
-(set-key 'com-what-cursor-position
-	 'info-table
-	 '((#\x :control) (#\=)))
+(esa:set-key 'com-what-cursor-position
+	     'info-table
+	     '((#\x :control) (#\=)))
 
 (define-command (com-browse-url :name t :command-table base-table) 
     ((url 'url :prompt "Browse URL"))
@@ -95,10 +95,10 @@
     (add-group name views))
   (select-group (get-group name)))
 
-(set-key `(com-define-group ,*unsupplied-argument-marker*
-			    ,*unsupplied-argument-marker*)
-         'global-climacs-table
-         '((#\x :control) (#\g) (#\d)))
+(esa:set-key `(com-define-group ,*unsupplied-argument-marker*
+				,*unsupplied-argument-marker*)
+	     'global-climacs-table
+	     '((#\x :control) (#\g) (#\d)))
 
 (define-command (com-define-file-group :name t :command-table global-climacs-table)
     ((name 'string :prompt "Name")
@@ -109,27 +109,27 @@
     (add-group name pathnames))
   (select-group (get-group name)))
 
-(set-key `(com-define-file-group ,*unsupplied-argument-marker*
-				 ,*unsupplied-argument-marker*)
-         'global-climacs-table
-         '((#\x :control) (#\g) (#\f)))
+(esa:set-key `(com-define-file-group ,*unsupplied-argument-marker*
+				     ,*unsupplied-argument-marker*)
+	     'global-climacs-table
+	     '((#\x :control) (#\g) (#\f)))
 
 (define-command (com-select-group :name t :command-table global-climacs-table)
     ((group 'group))
   (select-group group))
 
-(set-key `(com-select-group ,*unsupplied-argument-marker*)
-         'global-climacs-table
-         '((#\x :control) (#\g) (#\s)))
+(esa:set-key `(com-select-group ,*unsupplied-argument-marker*)
+	     'global-climacs-table
+	     '((#\x :control) (#\g) (#\s)))
 
 (define-command (com-deselect-group :name t :command-table global-climacs-table)
     ()
   (deselect-group)
   (display-message "Group deselected"))
 
-(set-key 'com-deselect-group
-         'global-climacs-table
-         '((#\x :control) (#\g) (#\u)))
+(esa:set-key 'com-deselect-group
+	     'global-climacs-table
+	     '((#\x :control) (#\g) (#\u)))
 
 (define-command (com-current-group :name t :command-table global-climacs-table)
     ()
@@ -137,9 +137,9 @@
     (format s "Active group is: ")
     (present (get-active-group) 'group :stream s)))
 
-(set-key 'com-current-group
-         'global-climacs-table
-         '((#\x :control) (#\g) (#\c)))
+(esa:set-key 'com-current-group
+	     'global-climacs-table
+	     '((#\x :control) (#\g) (#\c)))
 
 (define-command (com-list-group-contents
 		 :name t
@@ -149,6 +149,6 @@
     (format s "Active group designates: ")
     (display-group-contents (get-active-group) s)))
 
-(set-key 'com-list-group-contents
-         'global-climacs-table
-         '((#\x :control) (#\g) (#\l)))
+(esa:set-key 'com-list-group-contents
+	     'global-climacs-table
+	     '((#\x :control) (#\g) (#\l)))
