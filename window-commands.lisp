@@ -39,11 +39,12 @@
                  window vertially.  Otherwise split it horizontally.~@
                  If CLONE-CURRENT-VIEW-P is true, then use a clone~@
                  of the current window for the new window.")
-  (handler-bind ((view-already-displayed
+  (handler-bind ((climacs-gui:view-already-displayed
                   #'(lambda (condition)
                       (declare (ignore condition))
                       ;; If this happens, `clone-current-view-p' is false.
-                      (display-message "Can't split: no view available for new window")
+                      (esa:display-message "Can't split: no view available ~
+                                            for new window")
                       (return-from split-window-maybe-cloning nil))))
     (climacs-gui:split-window vertically-p clone-current-view-p)))
 
@@ -202,7 +203,7 @@
                  create a buffer-view with the name and switch to it.~@
                  Uses the name of the next view (if any) as a default.")
   (handler-case (switch-to-view (current-window) view)
-    (view-already-displayed (condition)
+    (climacs-gui:view-already-displayed (condition)
       (other-window (window condition)))))
 
 (esa:set-key `(com-switch-to-view ,*unsupplied-argument-marker*)
@@ -216,7 +217,7 @@
                  If the view is of a buffer and the buffer needs~@
                  saving, prompt the user before killing it.~@
                  Uses the current view as a default.")
-  (kill-view view))
+  (climacs-core:kill-view view))
 
 (esa:set-key `(com-kill-view ,*unsupplied-argument-marker*)
 	     'window-table
