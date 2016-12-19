@@ -206,7 +206,7 @@
     (climacs-gui:view-already-displayed (condition)
       (other-window (window condition)))))
 
-(esa:set-key `(com-switch-to-view ,*unsupplied-argument-marker*)
+(esa:set-key `(com-switch-to-view ,clim:*unsupplied-argument-marker*)
 	     'window-table
 	     '((#\x :control) (#\b)))
 
@@ -219,7 +219,7 @@
                  Uses the current view as a default.")
   (climacs-core:kill-view view))
 
-(esa:set-key `(com-kill-view ,*unsupplied-argument-marker*)
+(esa:set-key `(com-kill-view ,clim:*unsupplied-argument-marker*)
 	     'window-table
 	     '((#\x :control) (#\k)))
 
@@ -230,5 +230,5 @@
   'com-single-window
   'com-delete-window
   :divider
-  `(com-switch-to-view ,*unsupplied-argument-marker*)
-  `(com-kill-view ,*unsupplied-argument-marker*))
+  `(com-switch-to-view ,clim:*unsupplied-argument-marker*)
+  `(com-kill-view ,clim:*unsupplied-argument-marker*))
