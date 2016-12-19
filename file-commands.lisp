@@ -149,7 +149,7 @@
 ;;; Buffer commands
 
 (clim:define-command (com-toggle-read-only :name t :command-table buffer-table)
-    ((buffer 'buffer :default (esa:current-buffer *application-frame*)))
+    ((buffer 'buffer :default (esa:current-buffer)))
   (setf (esa-buffer:read-only-p buffer)
 	(not (esa-buffer:read-only-p buffer))))
 
@@ -160,7 +160,7 @@
   (list object))
 
 (clim:define-command (com-toggle-modified :name t :command-table buffer-table)
-    ((buffer 'buffer :default (esa:current-buffer *application-frame*)))
+    ((buffer 'buffer :default (esa:current-buffer)))
   (setf (esa-buffer:needs-saving buffer)
 	(not (esa-buffer:needs-saving buffer))))
 
