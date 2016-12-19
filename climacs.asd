@@ -29,7 +29,6 @@
   :serial t
   :components
   ((:file "packages")
-   (:file "climacs")
    (:file "core")
    (:file "groups")
    (:file "typeout")
@@ -38,4 +37,5 @@
    (:file "misc-commands")
    (:file "file-commands")
    (:file "developer-commands")
-   (:file "window-commands")))
+   (:file "window-commands")
+   (:file "climacs")))
