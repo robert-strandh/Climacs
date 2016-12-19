@@ -45,10 +45,11 @@
                       ;; If this happens, `clone-current-view-p' is false.
                       (display-message "Can't split: no view available for new window")
                       (return-from split-window-maybe-cloning nil))))
-    (split-window vertically-p clone-current-view-p)))
+    (climacs-gui:split-window vertically-p clone-current-view-p)))
 
-(define-command (com-split-window-vertically :name t
-                                             :command-table window-table)
+(clim:define-command (com-split-window-vertically
+		      :name t
+		      :command-table window-table)
     ((clone-current-view 'boolean :default nil))
   (split-window-maybe-cloning t clone-current-view))
 
@@ -56,8 +57,9 @@
 	     'window-table
 	     '((#\x :control) (#\2)))
 
-(define-command (com-split-window-horizontally :name t
-                                               :command-table window-table)
+(clim:define-command (com-split-window-horizontally
+		      :name t
+		      :command-table window-table)
     ((clone-current-view 'boolean :default nil))
   (split-window-maybe-cloning nil clone-current-view))
 
@@ -65,7 +67,10 @@
 	     'window-table
 	     '((#\x :control) (#\3)))
 
-(define-command (com-other-window :name t :command-table window-table) ()
+(clim:define-command (com-other-window
+		      :name t
+		      :command-table window-table)
+    ()
   (other-window))
 
 (esa:set-key 'com-other-window
@@ -90,7 +95,9 @@
                     do (incf scan))
          (return scan)))))
 
-(define-command (com-switch-to-this-window :name nil :command-table window-table)
+(clim:define-command (com-switch-to-this-window
+		      :name nil
+		      :command-table window-table)
     ((window 'pane) (x 'integer) (y 'integer))
   (other-window window)
   (when (and (buffer-pane-p window)
@@ -106,7 +113,7 @@
 
 (define-gesture-name :select-other :pointer-button (:right) :unique nil)
 
-(define-command (com-mouse-save :name nil :command-table window-table)
+(clim:define-command (com-mouse-save :name nil :command-table window-table)
     ((window 'pane) (x 'integer) (y 'integer))
   (when (and (buffer-pane-p window)
 	     (eq window (current-window)))
@@ -122,7 +129,7 @@
 
 (define-gesture-name :middle-button :pointer-button (:middle) :unique nil)
 
-(define-command (com-yank-here :name nil :command-table window-table)
+(clim:define-command (com-yank-here :name nil :command-table window-table)
     ((window 'pane) (x 'integer) (y 'integer))
   (when (buffer-pane-p window)
     (other-window window)
@@ -142,14 +149,18 @@
 	   (com-delete-window))
   (setf *standard-output* (car (windows *application-frame*))))
 
-(define-command (com-single-window :name t :command-table window-table) ()
+(clim:define-command (com-single-window :name t :command-table window-table)
+    ()
   (single-window))
 
 (esa:set-key 'com-single-window
 	     'window-table
 	     '((#\x :control) (#\1)))
 
-(define-command (com-scroll-other-window :name t :command-table window-table) ()
+(clim:define-command (com-scroll-other-window
+		      :name t
+		      :command-table window-table)
+    ()
   (let ((other-window (second (windows *application-frame*))))
     (when other-window
       (page-down other-window (view other-window)))))
@@ -158,7 +169,10 @@
 	     'window-table
 	     '((#\v :control :meta)))
 
-(define-command (com-scroll-other-window-up :name t :command-table window-table) ()
+(clim:define-command (com-scroll-other-window-up
+		      :name t
+		      :command-table window-table)
+    ()
   (let ((other-window (second (windows *application-frame*))))
     (when other-window
       (page-up other-window (view other-window)))))
@@ -167,8 +181,8 @@
 	     'window-table
 	     '((#\V :control :meta)))
 
-(define-command (com-delete-window :name t :command-table window-table) ()
-  (delete-window))
+(clim:define-command (com-delete-window :name t :command-table window-table) ()
+  (climacs-gui:delete-window))
 
 (esa:set-key 'com-delete-window
 	     'window-table
@@ -178,7 +192,7 @@
 ;;; 
 ;;; Commands for switching/killing current view.
 
-(define-command (com-switch-to-view :name t :command-table window-table)
+(clim:define-command (com-switch-to-view :name t :command-table window-table)
     ;; Perhaps the default should be an undisplayed view?
     ((view 'view :default (or (find (current-view) (views *application-frame*)
                                :test (complement #'eq))
@@ -195,7 +209,7 @@
 	     'window-table
 	     '((#\x :control) (#\b)))
 
-(define-command (com-kill-view :name t :command-table window-table)
+(clim:define-command (com-kill-view :name t :command-table window-table)
     ((view 'view :prompt "Kill view"
                  :default (current-view)))
   #.(format nil "Prompt for a view name and kill that view.~@
