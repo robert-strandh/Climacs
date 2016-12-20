@@ -48,7 +48,7 @@ the buffer `buffer' and the filepath `filepath'."
   (let ((seq (buffer-sequence buffer 0 (size buffer))))
     (if (every #'characterp seq)
         (write-sequence seq stream)
-        (display-message "Cannot save to file, buffer contains non-character object"))))
+        (esa:display-message "Cannot save to file, buffer contains non-character object"))))
 
 (defun input-from-stream (stream buffer offset)
   (let* ((seq (make-string (file-length stream)))

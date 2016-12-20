@@ -52,7 +52,7 @@
                  FIXME: gives no information at end of buffer.")
   (let* ((char (or (end-of-buffer-p (point)) (object-after (point))))
 	 (column (column-number (point))))
-    (display-message "Char: ~:[none~*~;~:*~:C (#o~O ~:*~D ~:*#x~X)~] point=~D of ~D (~D%) column ~D"
+    (esa:display-message "Char: ~:[none~*~;~:*~:C (#o~O ~:*~D ~:*#x~X)~] point=~D of ~D (~D%) column ~D"
 		     (and (characterp char) char)
 		     (and (characterp char) (char-code char))
 		     (offset (point)) (size (current-buffer))
@@ -125,7 +125,7 @@
 (define-command (com-deselect-group :name t :command-table global-climacs-table)
     ()
   (deselect-group)
-  (display-message "Group deselected"))
+  (esa:display-message "Group deselected"))
 
 (esa:set-key 'com-deselect-group
 	     'global-climacs-table

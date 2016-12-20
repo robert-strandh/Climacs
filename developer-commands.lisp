@@ -52,10 +52,10 @@
   object)
 
 (define-command (com-accept-string :name t :command-table development-table) ()
-  (display-message (format nil "~s" (accept 'string))))
+  (esa:display-message (format nil "~s" (accept 'string))))
  
 (define-command (com-accept-symbol :name t :command-table development-table) ()
-  (display-message (format nil "~s" (accept 'symbol))))	 
+  (esa:display-message (format nil "~s" (accept 'symbol))))
 
 (define-command (com-accept-lisp-string :name t :command-table development-table) ()
-  (display-message (format nil "~s" (accept 'lisp-string))))
+  (esa:display-message (format nil "~s" (accept 'lisp-string))))

@@ -63,7 +63,7 @@ Entering an empty search string stops the prompting."
     ((view 'view :prompt "View with Query Repace strings"))
   (unless (member view (views *esa-instance*))
     (beep)
-    (display-message "~A not an existing buffer" (name view))
+    (esa:display-message "~A not an existing buffer" (name view))
     (return-from com-multiple-query-replace-from-buffer nil))
   (let* ((buffer (buffer view))
          (contents (buffer-substring buffer 0 (1- (size buffer))))
@@ -85,7 +85,7 @@ Entering an empty search string stops the prompting."
 						 (subseq contents start index)))))
     (unless (evenp (length strings))
       (beep)
-      (display-message "Uneven number of strings in ~A" (name buffer))
+      (esa:display-message "Uneven number of strings in ~A" (name buffer))
       (return-from com-multiple-query-replace-from-buffer nil))
     (multiple-query-replace (loop for (string1 string2) on strings by #'cddr
 				  collect (cons string1 string2)))))
@@ -114,13 +114,13 @@ Entering an empty search string stops the prompting."
                  :string2 (cdr (assoc found strings :test #'string=)))
 		(query-replace-mode (current-window))
 		t)
-	  (display-message "Replace ~A with ~A: "
-			   (string1 (query-replace-state (current-window)))
-			   (string2 (query-replace-state (current-window))))
+	  (esa:display-message "Replace ~A with ~A: "
+			       (string1 (query-replace-state (current-window)))
+			       (string2 (query-replace-state (current-window))))
 	  (simple-command-loop 'multiple-query-replace-drei-table
 			       (query-replace-mode (current-window))
 			       ((setf (query-replace-mode (current-window)) nil))))))
-    (display-message "Replaced ~D occurrence~:P" occurrences)))
+    (esa:display-message "Replaced ~D occurrence~:P" occurrences)))
 
 (define-command (com-multiple-query-replace-replace
 		 :name t
@@ -143,9 +143,9 @@ Entering an empty search string stops the prompting."
 		     (make-instance 'query-replace-state
 			:string1 found
 			:string2 (cdr (assoc found strings :test #'string=))))
-	       (display-message "Replace ~A with ~A: "
-				(string1 (query-replace-state (current-window)))
-				(string2 (query-replace-state (current-window)))))))))
+	       (esa:display-message "Replace ~A with ~A: "
+				    (string1 (query-replace-state (current-window)))
+				    (string2 (query-replace-state (current-window)))))))))
 
 (define-command (com-multiple-query-replace-replace-and-quit
 		 :name t
@@ -203,9 +203,9 @@ Entering an empty search string stops the prompting."
 		     (make-instance 'query-replace-state
 			:string1 found
 			:string2 (cdr (assoc found strings :test #'string=))))
-	       (display-message "Replace ~A with ~A: "
-				(string1 (query-replace-state (current-window)))
-				(string2 (query-replace-state (current-window))))))))
+	       (esa:display-message "Replace ~A with ~A: "
+				    (string1 (query-replace-state (current-window)))
+				    (string2 (query-replace-state (current-window))))))))
 
 (defun multiple-query-replace-set-key (gesture command)
   (add-command-to-command-table command 'multiple-query-replace-drei-table

@@ -102,7 +102,7 @@ it will be replaced by some other view."))
                   1)
                (handler-case (accept 'boolean :prompt "Save buffer first?")
                  (error () (progn (beep)
-                                  (display-message "Invalid answer")
+                                  (esa:display-message "Invalid answer")
                                   (return-from kill-view nil)))))
       (save-buffer (buffer view)))
     (setf views (remove view views))
@@ -310,10 +310,10 @@ file if necessary."
 
 (defun find-file-impl (filepath &optional readonlyp)
   (cond ((null filepath)
-	 (display-message "No file name given.")
+	 (esa:display-message "No file name given.")
 	 (beep))
 	((directory-pathname-p filepath)
-	 (display-message "~A is a directory name." filepath)
+	 (esa:display-message "~A is a directory name." filepath)
 	 (beep))
         (t
          (let ((existing-view (find-view-with-pathname filepath)))
@@ -365,6 +365,6 @@ to overwrite."
 		    :prompt (format nil "File has changed on disk. ~a anyway?"
 				    question))
 	    t
-	    (progn (display-message "~a not ~a" filepath answer)
+	    (progn (esa:display-message "~a not ~a" filepath answer)
 		   nil))
 	t)))
