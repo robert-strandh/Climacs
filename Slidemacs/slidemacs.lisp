@@ -22,7 +22,7 @@
 
 (defpackage :climacs-slidemacs-editor
   (:use :clim-lisp :clim :clim-extensions :drei-buffer :drei-base 
-	:drei-syntax :flexichain :drei :drei-fundamental-syntax)
+	:drei-syntax :drei :drei-fundamental-syntax)
   (:export))
 
 (in-package :climacs-slidemacs-editor)
