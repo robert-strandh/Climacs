@@ -239,7 +239,7 @@ window"))
  :inherit-from (list (make-instance 'climacs-command-table
                       :name 'climacs-dispatching-table))
  :menu `(("File" :menu esa-io-menu-table)
-         ("Macros" :menu keyboard-macro-menu-table)
+         ("Macros" :menu esa:keyboard-macro-menu-table)
          ("Windows" :menu window-menu-table)
          ("Help" :menu esa:help-menu-table))
  :errorp nil)
@@ -547,7 +547,7 @@ instance. `Window' must already be recognized by the Climacs
 instance."
   ;; Ensure that only one pane can be active.
   (let ((climacs (pane-frame window)))
-    (unless (esa:current-window-p window)
+    (unless (current-window-p window)
       (when (typep (esa:esa-current-window climacs) 'climacs-pane)
         (setf (active (esa:esa-current-window climacs)) nil))
       (unless (member window (esa:windows climacs))
