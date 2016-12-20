@@ -177,7 +177,7 @@ window"))
       :foreground *info-fg-color*
       :width 900))
 
-(defclass climacs-minibuffer-pane (minibuffer-pane)
+(defclass climacs-minibuffer-pane (esa:minibuffer-pane)
   ()
   (:default-initargs
    :default-view +textual-view+
@@ -209,7 +209,7 @@ window"))
 ;;; the functions that the ESA commands call be customizeable generic
 ;;; functions; however, while they're not, scribbling over the ESA
 ;;; command tables is a bad thing.
-(make-command-table 'climacs-help-table :inherit-from '(help-table)
+(make-command-table 'climacs-help-table :inherit-from '(esa:help-table)
                     :errorp nil)
 
 (make-command-table 'global-climacs-table
@@ -244,7 +244,7 @@ window"))
          ("Help" :menu esa:help-menu-table))
  :errorp nil)
 
-(define-application-frame climacs (esa-frame-mixin
+(define-application-frame climacs (esa:esa-frame-mixin
 				   standard-application-frame)
   ((%views :initform '() :accessor views)
    (%groups :initform (make-hash-table :test #'equal) :accessor groups)
@@ -284,12 +284,12 @@ window"))
                  (with-frame-manager ((make-instance 'climacs-frame-manager))
                    (esa:esa-top-level frame :prompt "M-x "))))))
 
-(define-esa-top-level ((frame climacs) command-parser
-                       command-unparser
-                       partial-command-parser
-                       prompt)
+(esa:define-esa-top-level ((frame climacs) command-parser
+			   command-unparser
+			   partial-command-parser
+			   prompt)
  :bindings ((*default-target-creator* *climacs-target-creator*)
-            (esa:*previous-command* (previous-command (drei-instance)))
+            (esa:*previous-command* (esa:previous-command (drei-instance)))
             (*standard-output* (or (output-stream frame)
                                    *terminal-io*))))
 
@@ -303,27 +303,27 @@ window"))
                          (typep view 'drei-buffer-view))
                      (views climacs)))))
 
-(defmethod esa-current-buffer ((application-frame climacs))
-  (when (buffer-pane-p (esa-current-window application-frame))
-    (buffer (current-view (esa-current-window application-frame)))))
+(defmethod esa:esa-current-buffer ((application-frame climacs))
+  (when (buffer-pane-p (esa:esa-current-window application-frame))
+    (buffer (current-view (esa:esa-current-window application-frame)))))
 
-(defmethod (setf esa-current-buffer) ((new-buffer climacs-buffer)
-                                      (application-frame climacs))
-  (setf (buffer (current-view (esa-current-window application-frame)))
+(defmethod (setf esa:esa-current-buffer) ((new-buffer climacs-buffer)
+					  (application-frame climacs))
+  (setf (buffer (current-view (esa:esa-current-window application-frame)))
         new-buffer))
 
 (defmethod drei-instance-of ((frame climacs))
-  (esa-current-window frame))
+  (esa:esa-current-window frame))
 
 (defmethod (setf esa:windows) :after (new-val (climacs climacs))
   ;; Ensures that we don't end up with two views that both believe
   ;; they are active.
-  (activate-window (esa-current-window climacs)))
+  (activate-window (esa:esa-current-window climacs)))
 
 (defun current-window-p (window)
   "Return true if `window' is the current window of its Climacs
 instance."
-  (eq window (esa-current-window (pane-frame window))))
+  (eq window (esa:esa-current-window (pane-frame window))))
 
 (defun ensure-only-view-active (climacs &optional view)
   "Ensure that `view' is the only view of `climacs' that is
@@ -352,8 +352,8 @@ active."
             (view-already-displayed ()
               (delete-window window)))))))
   (ensure-only-view-active
-   frame (when (typep (esa-current-window frame) 'climacs-pane)
-           (view (esa-current-window frame)))))
+   frame (when (typep (esa:esa-current-window frame) 'climacs-pane)
+           (view (esa:esa-current-window frame)))))
 
 (defmethod (setf views) :after ((new-value null) (frame climacs))
   ;; You think you can remove all views? I laught at your silly
@@ -362,7 +362,7 @@ active."
                              frame 'textual-drei-syntax-view))))
 
 (defmethod esa:command-for-unbound-gestures ((frame climacs) gestures)
-  (esa:command-for-unbound-gestures (esa-current-window frame) gestures))
+  (esa:command-for-unbound-gestures (esa:esa-current-window frame) gestures))
 
 (defun make-view-subscript-generator (climacs)
   #'(lambda (name)
@@ -395,7 +395,7 @@ active."
 
 (defun any-displayed-view ()
   "Return some view on display."
-  (view (esa-current-window *application-frame*)))
+  (view (esa:esa-current-window *application-frame*)))
 
 (defun view-on-display (climacs view)
   "Return true if `view' is on display in a window of `climacs',
@@ -537,9 +537,9 @@ etc."))
 FIXME: does this really have that effect?"
   (full-redisplay (esa:current-window)))
 
-(set-key 'com-full-redisplay
-	 'base-table
-	 '((#\l :control)))
+(esa:set-key 'com-full-redisplay
+	     'base-table
+	     '((#\l :control)))
 
 (defun activate-window (window)
   "Set `window' to be the active window for its Climacs
@@ -548,8 +548,8 @@ instance."
   ;; Ensure that only one pane can be active.
   (let ((climacs (pane-frame window)))
     (unless (esa:current-window-p window)
-      (when (typep (esa-current-window climacs) 'climacs-pane)
-        (setf (active (esa-current-window climacs)) nil))
+      (when (typep (esa:esa-current-window climacs) 'climacs-pane)
+        (setf (active (esa:esa-current-window climacs)) nil))
       (unless (member window (esa:windows climacs))
         (error "Cannot set unknown window to be active window"))
       (setf (esa:windows climacs)
@@ -686,8 +686,8 @@ pane to a clone of the view in `orig-pane', provided that
                     (remove pane (esa:windows esa:*esa-instance*))))
       (setf (esa:windows esa:*esa-instance*)
             (append (rest (esa:windows esa:*esa-instance*))
-                    (list (esa-current-window esa:*esa-instance*)))))
-  (activate-window (esa-current-window esa:*esa-instance*)))
+                    (list (esa:esa-current-window esa:*esa-instance*)))))
+  (activate-window (esa:esa-current-window esa:*esa-instance*)))
 
 ;;; For the ESA help functions.
 
