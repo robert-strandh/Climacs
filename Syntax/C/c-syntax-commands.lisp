@@ -87,8 +87,8 @@ string at point."
          (mark (clone-mark point))
          (syntax (syntax (buffer pane))))
     (if (plusp count)
-        (loop repeat count do (forward-expression mark syntax))
-        (loop repeat (- count) do (backward-expression mark syntax)))
+        (loop repeat count do (drei-motion:forward-expression mark syntax))
+        (loop repeat (- count) do (drei-motion:backward-expression mark syntax)))
     (indent-region pane (clone-mark point) mark)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

@@ -281,8 +281,8 @@ Each newline and following whitespace is replaced by a single space."
          (m (clone-mark mark))
          (*read-base* (base syntax)))
     (with-syntax-package (syntax mark)
-      (forward-definition m syntax 1 nil)
-      (if (backward-definition m syntax 1 nil)
+      (drei-motion:forward-definition m syntax 1 nil)
+      (if (drei-motion:backward-definition m syntax 1 nil)
           (multiple-value-bind (result notes)
               (compile-form-for-drei (get-usable-image syntax)
                                      (form-to-object syntax token

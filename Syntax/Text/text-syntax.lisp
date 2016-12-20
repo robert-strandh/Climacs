@@ -156,7 +156,7 @@
                       (t nil)))))))
   (values 0 (size (buffer syntax))))
 
-(defmethod backward-one-paragraph (mark (syntax text-syntax))
+(defmethod drei-motion:backward-one-paragraph (mark (syntax text-syntax))
   (with-slots (paragraphs) syntax
      (let ((pos1 (index-of-mark-after-offset paragraphs (offset mark))))
        (when (> pos1 0)
@@ -166,7 +166,7 @@
 		   (offset (element* paragraphs (1- pos1)))))
          t))))
 
-(defmethod forward-one-paragraph ((mark mark) (syntax text-syntax))
+(defmethod drei-motion:forward-one-paragraph ((mark mark) (syntax text-syntax))
   (with-slots (paragraphs) syntax
     (let ((pos1 (index-of-mark-after-offset
                  paragraphs
@@ -180,7 +180,7 @@
 		   (offset (element* paragraphs pos1))))
          t))))
 
- (defmethod backward-one-sentence ((mark mark) (syntax text-syntax))
+ (defmethod drei-motion:backward-one-sentence ((mark mark) (syntax text-syntax))
    (with-slots (sentence-beginnings) syntax
       (let ((pos1 (index-of-mark-after-offset sentence-beginnings (offset mark))))
         (when (> pos1 0)
@@ -188,7 +188,7 @@
                 (offset (element* sentence-beginnings (1- pos1))))
           t))))
 
- (defmethod forward-one-sentence ((mark mark) (syntax text-syntax))
+ (defmethod drei-motion:forward-one-sentence ((mark mark) (syntax text-syntax))
    (with-slots (sentence-endings) syntax
      (let ((pos1 (index-of-mark-after-offset
                   sentence-endings

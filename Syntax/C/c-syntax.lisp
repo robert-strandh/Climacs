@@ -908,7 +908,7 @@ treat comments as forms."
 				 (match right-brace-lexeme))
   t)
 
-(defmethod backward-one-expression (mark (syntax c-syntax))
+(defmethod drei-motion:backward-one-expression (mark (syntax c-syntax))
   (let ((tlv (top-level-vector syntax)))
     (multiple-value-bind (form count)
 	(top-level-form-before-in-vector tlv (offset mark) t)
@@ -929,7 +929,7 @@ treat comments as forms."
 				(t (return nil))))
 	    (setf (offset mark) (start-offset form)))))))
 
-(defmethod forward-one-expression (mark (syntax c-syntax))
+(defmethod drei-motion:forward-one-expression (mark (syntax c-syntax))
   (let ((tlv (top-level-vector syntax)))
     (multiple-value-bind (form count)
 	(top-level-form-after-in-vector tlv (offset mark) t)
@@ -950,7 +950,7 @@ treat comments as forms."
 				(t (return nil))))
 	    (setf (offset mark) (end-offset form)))))))
 
-(defmethod forward-one-list ((mark mark) (syntax c-syntax))
+(defmethod drei-motion:forward-one-list ((mark mark) (syntax c-syntax))
   (let ((tlv (top-level-vector syntax)))
     (multiple-value-bind (form count)
 	(top-level-form-after-in-vector tlv (offset mark))
@@ -972,7 +972,7 @@ treat comments as forms."
 				  (t (return nil)))))
 	      finally (return nil))))))
 
-(defmethod backward-one-list ((mark mark) (syntax c-syntax))
+(defmethod drei-motion:backward-one-list ((mark mark) (syntax c-syntax))
   (let ((tlv (top-level-vector syntax)))
     (multiple-value-bind (form count)
 	(top-level-form-before-in-vector tlv (offset mark))
@@ -997,7 +997,7 @@ treat comments as forms."
 
 (drei-motion:define-motion-fns list)
 
-(defmethod backward-one-down ((mark mark) (syntax c-syntax))
+(defmethod drei-motion:backward-one-down ((mark mark) (syntax c-syntax))
   (let ((tlv (top-level-vector syntax)))
     (multiple-value-bind (form count)
 	(top-level-form-before-in-vector tlv (offset mark))
@@ -1009,7 +1009,7 @@ treat comments as forms."
 		   (return t)
 	      finally (return nil))))))
 
-(defmethod backward-one-up (mark (syntax c-syntax))
+(defmethod drei-motion:backward-one-up (mark (syntax c-syntax))
   (let ((tlv (top-level-vector syntax)))
     (multiple-value-bind (form count)
 	(top-level-form-before-in-vector tlv (offset mark))
@@ -1029,7 +1029,7 @@ treat comments as forms."
 			 (t (return nil)))
 	      finally (return nil))))))
 
-(defmethod forward-one-down ((mark mark) (syntax c-syntax))
+(defmethod drei-motion:forward-one-down ((mark mark) (syntax c-syntax))
   (let ((tlv (top-level-vector syntax)))
     (multiple-value-bind (form count)
 	(top-level-form-after-in-vector tlv (offset mark))
@@ -1041,7 +1041,7 @@ treat comments as forms."
 		   (return t)
 	      finally (return nil))))))
 
-(defmethod forward-one-up (mark (syntax c-syntax))
+(defmethod drei-motion:forward-one-up (mark (syntax c-syntax))
   (let ((tlv (top-level-vector syntax)))
     (multiple-value-bind (form count)
 	(top-level-form-after-in-vector tlv (offset mark))

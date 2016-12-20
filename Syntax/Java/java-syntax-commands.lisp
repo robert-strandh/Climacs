@@ -77,8 +77,8 @@ string at point."
     ((count 'integer :prompt "Number of expressions"))
   (let* ((mark (clone-mark (point))))
     (if (plusp count)
-        (loop repeat count do (forward-expression mark (current-syntax)))
-        (loop repeat (- count) do (backward-expression mark (current-syntax))))
+        (loop repeat count do (drei-motion:forward-expression mark (current-syntax)))
+        (loop repeat (- count) do (drei-motion:backward-expression mark (current-syntax))))
     (indent-region (current-view) (point) mark)))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
