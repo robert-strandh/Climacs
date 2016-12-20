@@ -56,7 +56,7 @@ acting over multiple views.")
 used when reading the source destination of the buffer
 contents.")))
 
-(defclass climacs-pane (drei-pane esa-pane-mixin)
+(defclass climacs-pane (drei-pane esa:esa-pane-mixin)
   ()
   (:metaclass modual-class)
   (:default-initargs
@@ -106,7 +106,7 @@ window"))
                       (and (not (eq other-pane pane))
                            (typep other-pane 'climacs-pane)
                            (eq (view other-pane) view)))
-                  (windows (pane-frame pane))))
+                  (esa:windows (pane-frame pane))))
         (old-view-active (active (view pane))))
     (prog1
         (cond ((not (member view (views (pane-frame pane))))
@@ -160,14 +160,14 @@ window"))
   (typep (view pane) 'drei-buffer-view))
 
 (defmethod in-focus-p ((pane climacs-pane))
-  (eq pane (first (windows *application-frame*))))
+  (eq pane (first (esa:windows *application-frame*))))
 
 (defvar *info-bg-color* +gray85+)
 (defvar *info-fg-color* +black+)
 (defvar *mini-bg-color* +white+)
 (defvar *mini-fg-color* +black+)
 
-(defclass climacs-info-pane (info-pane)
+(defclass climacs-info-pane (esa:info-pane)
   ()
   (:default-initargs
       :height 20 :max-height 20 :min-height 20
@@ -219,7 +219,7 @@ window"))
                                     window-table
                                     development-table
                                     climacs-help-table
-                                    global-esa-table
+                                    esa:global-esa-table
                                     esa-io-table))
 
 ;; This command table is what assembles the various other command
@@ -265,7 +265,7 @@ window"))
       (unless (output-stream esa:*esa-instance*)
         (setf (output-stream esa:*esa-instance*)
               (make-typeout-stream *application-frame* "*standard-output*")))
-      (setf (windows *application-frame*) (list climacs-pane)
+      (setf (esa:windows *application-frame*) (list climacs-pane)
 	    (views *application-frame*) (list (view climacs-pane)))
       (vertically ()
         (if *with-scrollbars*
@@ -315,7 +315,7 @@ window"))
 (defmethod drei-instance-of ((frame climacs))
   (esa-current-window frame))
 
-(defmethod (setf windows) :after (new-val (climacs climacs))
+(defmethod (setf esa:windows) :after (new-val (climacs climacs))
   ;; Ensures that we don't end up with two views that both believe
   ;; they are active.
   (activate-window (esa-current-window climacs)))
@@ -344,7 +344,7 @@ active."
     (let* ((old-views (copy-list views))
            (removed-views (set-difference
                            old-views (call-next-method) :test #'eq)))
-      (dolist (window (windows frame))
+      (dolist (window (esa:windows frame))
         (when (and (typep window 'climacs-pane)
                    (member (view window) removed-views :test #'eq))
           (handler-case (setf (view window)
@@ -402,7 +402,7 @@ active."
 false otherwise."
   (member view (remove-if-not #'(lambda (window)
                                   (typep window 'climacs-pane))
-                              (windows climacs))
+                              (esa:windows climacs))
    :key #'view))
 
 (defun any-preferably-undisplayed-view ()
@@ -550,10 +550,10 @@ instance."
     (unless (esa:current-window-p window)
       (when (typep (esa-current-window climacs) 'climacs-pane)
         (setf (active (esa-current-window climacs)) nil))
-      (unless (member window (windows climacs))
+      (unless (member window (esa:windows climacs))
         (error "Cannot set unknown window to be active window"))
-      (setf (windows climacs)
-            (cons window (remove window (windows climacs)))))
+      (setf (esa:windows climacs)
+            (cons window (remove window (esa:windows climacs)))))
     (ensure-only-view-active
      climacs (when (typep window 'climacs-pane)
                (view window)))))
@@ -646,7 +646,7 @@ pane to a clone of the view in `orig-pane', provided that
       (let* ((current-window pane)
 	     (constellation-root (find-parent current-window)))
         (setup-split-pane current-window new-pane clone-view)
-	(push new-pane (rest (windows esa:*esa-instance*)))
+	(push new-pane (rest (esa:windows esa:*esa-instance*)))
 	(replace-constellation constellation-root vbox vertically-p)
 	(full-redisplay current-window)
 	(full-redisplay new-pane)
@@ -654,7 +654,7 @@ pane to a clone of the view in `orig-pane', provided that
 	new-pane))))
 
 (defun delete-window (&optional (window (esa:current-window)))
-  (unless (null (cdr (windows esa:*esa-instance*)))
+  (unless (null (cdr (esa:windows esa:*esa-instance*)))
     (let* ((constellation (find-parent window))
 	   (box (sheet-parent constellation))
 	   (box-children (sheet-children box))
@@ -666,8 +666,8 @@ pane to a clone of the view in `orig-pane', provided that
 	   (first (first children))
 	   (second (second children))
 	   (third (third children)))
-      (setf (windows esa:*esa-instance*)
-	    (delete window (windows esa:*esa-instance*)))
+      (setf (esa:windows esa:*esa-instance*)
+	    (delete window (esa:windows esa:*esa-instance*)))
       (sheet-disown-child box other)
       (sheet-adopt-child parent other)
       (sheet-disown-child parent box)
@@ -680,12 +680,12 @@ pane to a clone of the view in `orig-pane', provided that
 				     (list first other)))))))
 
 (defun other-window (&optional pane)
-  (if (and pane (find pane (windows esa:*esa-instance*)))
-      (setf (windows esa:*esa-instance*)
+  (if (and pane (find pane (esa:windows esa:*esa-instance*)))
+      (setf (esa:windows esa:*esa-instance*)
             (append (list pane)
-                    (remove pane (windows esa:*esa-instance*))))
-      (setf (windows esa:*esa-instance*)
-            (append (rest (windows esa:*esa-instance*))
+                    (remove pane (esa:windows esa:*esa-instance*))))
+      (setf (esa:windows esa:*esa-instance*)
+            (append (rest (esa:windows esa:*esa-instance*))
                     (list (esa-current-window esa:*esa-instance*)))))
   (activate-window (esa-current-window esa:*esa-instance*)))
 

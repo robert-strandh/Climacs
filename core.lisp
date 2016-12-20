@@ -331,7 +331,7 @@ file if necessary."
                  (unless (buffer-pane-p (esa:current-window))
                    (other-window (or (find-if #'(lambda (window)
                                                   (typep window 'climacs-pane))
-                                              (windows esa:*esa-instance*))
+                                              (esa:windows esa:*esa-instance*))
                                      (split-window t))))
                  (setf (offset (point buffer)) (offset (point view))
                        (syntax view) (make-syntax-for-view view (syntax-class-name-for-filepath filepath))

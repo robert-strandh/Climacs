@@ -62,7 +62,7 @@ record history."))
         (last-cursor-position view) nil)
   (clear-redisplay-information view)
   ;; If it's on display, clear the window too.
-  (let ((window (find view (windows *application-frame*)
+  (let ((window (find view (esa:windows *application-frame*)
                  :key #'view)))
     (when window (window-clear window))))
 
@@ -144,7 +144,7 @@ stream meant for typeout. `Climacs' is the Climacs instance in
 which the typeout pane should be shown, and `label' is the name
 of the created typeout view. Returns NIL."
   (let* ((typeout-view (ensure-typeout-view climacs label erase))
-         (pane-with-typeout-view (or (find typeout-view (windows climacs)
+         (pane-with-typeout-view (or (find typeout-view (esa:windows climacs)
                                       :key #'view)
                                      (let ((pane (split-window t)))
                                        (setf (view pane) typeout-view)

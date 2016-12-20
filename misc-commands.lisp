@@ -36,7 +36,7 @@
                  contents of the buffer are changed. This flag is~@
                  consulted, for instance, when deciding whether~@
                  to prompt you to save the buffer before killing it.")
-  (setf (needs-saving (current-buffer)) nil))
+  (setf (needs-saving (esa:current-buffer)) nil))
 
 (esa:set-key 'com-not-modified
 	     'buffer-table
@@ -55,10 +55,10 @@
     (esa:display-message "Char: ~:[none~*~;~:*~:C (#o~O ~:*~D ~:*#x~X)~] point=~D of ~D (~D%) column ~D"
 		     (and (characterp char) char)
 		     (and (characterp char) (char-code char))
-		     (offset (point)) (size (current-buffer))
-		     (if (size (current-buffer))
+		     (offset (point)) (size (esa:current-buffer))
+		     (if (size (esa:current-buffer))
                          (round (* 100 (/ (offset (point))
-                                          (size (current-buffer)))))
+                                          (size (esa:current-buffer)))))
                          100)
 		     column)))
 

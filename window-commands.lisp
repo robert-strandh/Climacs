@@ -144,11 +144,11 @@
   (list window x y))
 
 (defun single-window ()
-  (loop until (null (cdr (windows *application-frame*)))
-	do (rotatef (car (windows *application-frame*))
-		    (cadr (windows *application-frame*)))
+  (loop until (null (cdr (esa:windows *application-frame*)))
+	do (rotatef (car (esa:windows *application-frame*))
+		    (cadr (esa:windows *application-frame*)))
 	   (com-delete-window))
-  (setf *standard-output* (car (windows *application-frame*))))
+  (setf *standard-output* (car (esa:windows *application-frame*))))
 
 (clim:define-command (com-single-window :name t :command-table window-table)
     ()
@@ -162,7 +162,7 @@
 		      :name t
 		      :command-table window-table)
     ()
-  (let ((other-window (second (windows *application-frame*))))
+  (let ((other-window (second (esa:windows *application-frame*))))
     (when other-window
       (page-down other-window (clim:view other-window)))))
 
@@ -174,7 +174,7 @@
 		      :name t
 		      :command-table window-table)
     ()
-  (let ((other-window (second (windows *application-frame*))))
+  (let ((other-window (second (esa:windows *application-frame*))))
     (when other-window
       (page-up other-window (clim:view other-window)))))
 
