@@ -144,7 +144,7 @@
 (defpackage :climacs-commands
   (:use :clim-lisp :clim :esa-utils :drei-base :drei-buffer
         :drei-syntax :drei-motion :drei-editing
-        :climacs-gui :esa :drei-kill-ring :drei
+        :climacs-gui :drei-kill-ring :drei
         :drei-abbrev :drei-undo :climacs-core :drei-core)
   (:documentation "This package is meant to contain Climacs'
   command definitions, as well as some useful automatic
