@@ -133,7 +133,7 @@
 
 (define-command (com-current-group :name t :command-table global-climacs-table)
     ()
-  (with-minibuffer-stream (s)
+  (esa:with-minibuffer-stream (s)
     (format s "Active group is: ")
     (present (get-active-group) 'group :stream s)))
 
@@ -145,7 +145,7 @@
 		 :name t
 		 :command-table global-climacs-table)
     ()
-  (with-minibuffer-stream (s)
+  (esa:with-minibuffer-stream (s)
     (format s "Active group designates: ")
     (display-group-contents (get-active-group) s)))
 
