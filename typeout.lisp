@@ -312,7 +312,7 @@ overlay."
       (unless (null (sheet-parent pane))
         (pane-overlayer (sheet-parent pane)))))
 
-(defun add-typeout (&optional (pane (current-window)))
+(defun add-typeout (&optional (pane (esa:current-window)))
   "Return the typeout overlay of `pane', creating one if it
 doesn't exist."
   (with-look-and-feel-realization
@@ -326,7 +326,7 @@ doesn't exist."
                                    ; the parent of `overlay'.
             (setf (overlay-pane overlayer) overlay))))))
 
-(defun remove-typeout (&optional (pane (current-window)))
+(defun remove-typeout (&optional (pane (esa:current-window)))
   "Remove the typeout overlay of `pane', defaulting to the
 current window."
   (setf (overlay-pane (pane-overlayer pane)) nil))
@@ -350,7 +350,7 @@ be newly created, and any old overlay will have been deleted."
         (remove-typeout pane)
         (values-list values)))))
 
-(defmacro with-typeout ((stream &rest args &key erase (window (current-window)))
+(defmacro with-typeout ((stream &rest args &key erase (window (esa:current-window)))
                         &body body)
   "Evaluate `body' with `stream' bound to a typeout overlay for
 `window'. If `erase' is true, the typeout overlay will be newly
@@ -440,7 +440,7 @@ is the frame manager."
 (defmethod frame-manager-menu-choose
     ((frame-manager climacs-frame-manager) items
      &rest options
-     &key (associated-window (current-window)) printer presentation-type
+     &key (associated-window (esa:current-window)) printer presentation-type
      (default-item nil default-item-p)
      text-style label cache unique-id id-test cache-value cache-test
      max-width max-height n-rows n-columns x-spacing y-spacing row-wise

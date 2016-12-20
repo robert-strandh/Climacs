@@ -516,7 +516,7 @@ etc."))
       (format pane "~V@T" (max (- 25 (length (subscripted-name view))) 1)))
     (display-view-info-to-info-pane pane master-pane view)
     (with-text-family (pane :sans-serif)
-      (princ (if (recordingp frame)
+      (princ (if (esa:recordingp frame)
 		 "Def"
 		 "")
 	     pane))))
@@ -535,7 +535,7 @@ etc."))
 (define-command (com-full-redisplay :name t :command-table base-table) ()
   "Redisplay the contents of the current window.
 FIXME: does this really have that effect?"
-  (full-redisplay (current-window)))
+  (full-redisplay (esa:current-window)))
 
 (set-key 'com-full-redisplay
 	 'base-table
@@ -547,7 +547,7 @@ instance. `Window' must already be recognized by the Climacs
 instance."
   ;; Ensure that only one pane can be active.
   (let ((climacs (pane-frame window)))
-    (unless (current-window-p window)
+    (unless (esa:current-window-p window)
       (when (typep (esa-current-window climacs) 'climacs-pane)
         (setf (active (esa-current-window climacs)) nil))
       (unless (member window (windows climacs))
@@ -639,7 +639,7 @@ pane to a clone of the view in `orig-pane', provided that
                             (clone-view-for-climacs (pane-frame orig-pane) (view orig-pane))
                             (any-preferably-undisplayed-view))))
 
-(defun split-window (&optional (vertically-p nil) (clone-view nil) (pane (current-window)))
+(defun split-window (&optional (vertically-p nil) (clone-view nil) (pane (esa:current-window)))
   (with-look-and-feel-realization
       ((frame-manager *esa-instance*) *esa-instance*)
     (multiple-value-bind (vbox new-pane) (make-pane-constellation)
@@ -653,7 +653,7 @@ pane to a clone of the view in `orig-pane', provided that
         (activate-window pane)
 	new-pane))))
 
-(defun delete-window (&optional (window (current-window)))
+(defun delete-window (&optional (window (esa:current-window)))
   (unless (null (cdr (windows *esa-instance*)))
     (let* ((constellation (find-parent window))
 	   (box (sheet-parent constellation))
@@ -691,7 +691,7 @@ pane to a clone of the view in `orig-pane', provided that
 
 ;;; For the ESA help functions.
 
-(defmethod invoke-with-help-stream ((frame climacs) title continuation)
+(defmethod esa:invoke-with-help-stream ((frame climacs) title continuation)
   (with-typeout-view (stream title t)
     (funcall continuation stream)))
 

@@ -117,7 +117,7 @@
 (clim:define-command (com-mouse-save :name nil :command-table window-table)
     ((window 'pane) (x 'integer) (y 'integer))
   (when (and (buffer-pane-p window)
-	     (eq window (current-window)))
+	     (eq window (esa:current-window)))
     (setf (offset (mark (clim:view window)))
 	  (click-to-offset window x y))
     (drei-commands::com-exchange-point-and-mark)
@@ -202,7 +202,7 @@
                  If the a view with that name does not exist,~@
                  create a buffer-view with the name and switch to it.~@
                  Uses the name of the next view (if any) as a default.")
-  (handler-case (switch-to-view (current-window) view)
+  (handler-case (switch-to-view (esa:current-window) view)
     (climacs-gui:view-already-displayed (condition)
       (other-window (window condition)))))
 

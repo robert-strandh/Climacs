@@ -108,18 +108,18 @@ Entering an empty search string stops the prompting."
       (let* ((point (point)) 
 	     (found (multiple-query-replace-find-next-match point re search-strings)))
 	(when found
-	  (setf (query-replace-state (current-window))
+	  (setf (query-replace-state (esa:current-window))
 		(make-instance 'query-replace-state
                  :string1 found
                  :string2 (cdr (assoc found strings :test #'string=)))
-		(query-replace-mode (current-window))
+		(query-replace-mode (esa:current-window))
 		t)
 	  (esa:display-message "Replace ~A with ~A: "
-			       (string1 (query-replace-state (current-window)))
-			       (string2 (query-replace-state (current-window))))
+			       (string1 (query-replace-state (esa:current-window)))
+			       (string2 (query-replace-state (esa:current-window))))
 	  (simple-command-loop 'multiple-query-replace-drei-table
-			       (query-replace-mode (current-window))
-			       ((setf (query-replace-mode (current-window)) nil))))))
+			       (query-replace-mode (esa:current-window))
+			       ((setf (query-replace-mode (esa:current-window)) nil))))))
     (esa:display-message "Replaced ~D occurrence~:P" occurrences)))
 
 (define-command (com-multiple-query-replace-replace
@@ -128,7 +128,7 @@ Entering an empty search string stops the prompting."
     ()
   (declare (special strings occurrences re))
   (let* ((point (point (current-view))) 
-	 (state (query-replace-state (current-window)))
+	 (state (query-replace-state (esa:current-window)))
 	 (string1 (string1 state))
 	 (string1-length (length string1)))
     (backward-object point string1-length)
@@ -138,14 +138,14 @@ Entering an empty search string stops the prompting."
 		  point
 		  re
 		  (mapcar #'car strings))))
-      (cond ((null found) (setf (query-replace-mode (current-window)) nil))
-	    (t (setf (query-replace-state (current-window))
+      (cond ((null found) (setf (query-replace-mode (esa:current-window)) nil))
+	    (t (setf (query-replace-state (esa:current-window))
 		     (make-instance 'query-replace-state
 			:string1 found
 			:string2 (cdr (assoc found strings :test #'string=))))
 	       (esa:display-message "Replace ~A with ~A: "
-				    (string1 (query-replace-state (current-window)))
-				    (string2 (query-replace-state (current-window)))))))))
+				    (string1 (query-replace-state (esa:current-window)))
+				    (string2 (query-replace-state (esa:current-window)))))))))
 
 (define-command (com-multiple-query-replace-replace-and-quit
 		 :name t
@@ -153,13 +153,13 @@ Entering an empty search string stops the prompting."
     ()
   (declare (special strings occurrences))
   (let* ((point (point))
-	 (state (query-replace-state (current-window)))
+	 (state (query-replace-state (esa:current-window)))
 	 (string1 (string1 state))
 	 (string1-length (length string1)))
     (backward-object point string1-length)
     (replace-one-string point string1-length (string2 state) (no-upper-p string1))
     (incf occurrences)
-    (setf (query-replace-mode (current-window)) nil)))
+    (setf (query-replace-mode (esa:current-window)) nil)))
 
 (define-command (com-multiple-query-replace-replace-all
 		 :name t
@@ -168,7 +168,7 @@ Entering an empty search string stops the prompting."
   (declare (special strings occurrences re))
   (let* ((point (point)) 
 	 (found nil))
-    (loop for state = (query-replace-state (current-window))
+    (loop for state = (query-replace-state (esa:current-window))
 	  for string1 = (string1 state)
 	  for string1-length = (length string1)
 	  do (backward-object point string1-length)
@@ -182,11 +182,11 @@ Entering an empty search string stops the prompting."
 				  re
 				  (mapcar #'car strings)))
 	  while found
-	  do (setf (query-replace-state (current-window))
+	  do (setf (query-replace-state (esa:current-window))
 		   (make-instance 'query-replace-state
 		      :string1 found
 		      :string2 (cdr (assoc found strings :test #'string=))))
-	  finally (setf (query-replace-state (current-window)) nil))))
+	  finally (setf (query-replace-state (esa:current-window)) nil))))
 
 (define-command (com-multiple-query-replace-skip
 		 :name t
@@ -198,14 +198,14 @@ Entering an empty search string stops the prompting."
 		 point
 		 re
 		 (mapcar #'car strings))))
-    (cond ((null found) (setf (query-replace-mode (current-window)) nil))
-	    (t (setf (query-replace-state (current-window))
+    (cond ((null found) (setf (query-replace-mode (esa:current-window)) nil))
+	    (t (setf (query-replace-state (esa:current-window))
 		     (make-instance 'query-replace-state
 			:string1 found
 			:string2 (cdr (assoc found strings :test #'string=))))
 	       (esa:display-message "Replace ~A with ~A: "
-				    (string1 (query-replace-state (current-window)))
-				    (string2 (query-replace-state (current-window))))))))
+				    (string1 (query-replace-state (esa:current-window)))
+				    (string2 (query-replace-state (esa:current-window))))))))
 
 (defun multiple-query-replace-set-key (gesture command)
   (add-command-to-command-table command 'multiple-query-replace-drei-table

@@ -112,7 +112,7 @@ it will be replaced by some other view."))
     ;; that can be garbage-collected instead.
     (when (buffer-view-p view)
       (setf (buffer view) (dummy-buffer)))
-    (full-redisplay (current-window))
+    (full-redisplay (esa:current-window))
     (current-view)))
 
 (defmethod kill-view ((name string))
@@ -318,7 +318,7 @@ file if necessary."
         (t
          (let ((existing-view (find-view-with-pathname filepath)))
            (if (and existing-view (if readonlyp (read-only-p (buffer existing-view)) t))
-               (switch-to-view (current-window) existing-view)
+               (switch-to-view (esa:current-window) existing-view)
                (let* ((newp (not (probe-file filepath)))
                       (buffer (if (and newp (not readonlyp))
                                   (make-new-buffer)
@@ -328,7 +328,7 @@ file if necessary."
                              *esa-instance* 'textual-drei-syntax-view
                              :name (filepath-filename filepath)
                              :buffer buffer)))
-                 (unless (buffer-pane-p (current-window))
+                 (unless (buffer-pane-p (esa:current-window))
                    (other-window (or (find-if #'(lambda (window)
                                                   (typep window 'climacs-pane))
                                               (windows *esa-instance*))
@@ -338,7 +338,7 @@ file if necessary."
                        (file-write-time buffer) (if newp (get-universal-time) (file-write-date filepath))
                        (needs-saving buffer) nil
                        (name buffer) (filepath-filename filepath))
-                 (setf (current-view (current-window)) view)
+                 (setf (current-view (esa:current-window)) view)
                  (evaluate-attribute-line view)
                  (setf (filepath buffer) (pathname filepath)
                        (read-only-p buffer) readonlyp)
