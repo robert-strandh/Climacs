@@ -250,7 +250,7 @@ window"))
    (%groups :initform (make-hash-table :test #'equal) :accessor groups)
    (%active-group :initform nil :accessor active-group)
    (%command-table :initform (find-command-table 'climacs-global-table)
-                   :accessor find-applicable-command-table
+                   :accessor esa:find-applicable-command-table
                    :accessor frame-command-table)
    (%output-stream :accessor output-stream
                    :initform nil
