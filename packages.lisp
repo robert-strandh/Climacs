@@ -27,7 +27,7 @@
 (in-package :cl-user)
 
 (defpackage :climacs-gui
-    (:use :clim-lisp :clim :drei-buffer :drei-base
+    (:use :clim-lisp :clim :drei-base
           :drei-abbrev :drei-syntax
           :drei-kill-ring :drei-core :drei :clim-extensions
           :drei-undo :drei-editing
