@@ -28,9 +28,9 @@
 
 (defpackage :climacs-gui
     (:use :clim-lisp :clim :drei-buffer :drei-base
-          :drei-abbrev :drei-syntax :drei-motion
+          :drei-abbrev :drei-syntax
           :drei-kill-ring :drei-core :drei :clim-extensions
-          :drei-undo :drei-editing :drei-motion
+          :drei-undo :drei-editing
           :esa-buffer :esa-io :esa-utils)
     ;;(:import-from :lisp-string)
     (:export #:climacs                  ; Frame.
@@ -91,7 +91,7 @@
 
 (defpackage :climacs-core
   (:use :clim-lisp :drei-base :drei-buffer :drei-fundamental-syntax
-        :drei-syntax :drei-motion :drei :drei-kill-ring
+        :drei-syntax :drei :drei-kill-ring
         :drei-editing :climacs-gui :clim :drei-abbrev :esa :esa-buffer :esa-io
         :esa-utils :drei-core)
   (:export #:display-string
@@ -143,7 +143,7 @@
 
 (defpackage :climacs-commands
   (:use :clim-lisp :clim :esa-utils :drei-base :drei-buffer
-        :drei-syntax :drei-motion :drei-editing
+        :drei-syntax :drei-editing
         :climacs-gui :drei-kill-ring :drei
         :drei-abbrev :drei-undo :climacs-core :drei-core)
   (:documentation "This package is meant to contain Climacs'
@@ -172,7 +172,7 @@
 
 (defpackage :climacs-structedit
   (:use :clim-lisp :clim :esa :esa-utils :drei :drei-buffer :drei-base :drei-core
-        :drei-motion :drei-editing :drei-syntax :drei-lr-syntax :drei-lisp-syntax)
+        :drei-editing :drei-syntax :drei-lr-syntax :drei-lisp-syntax)
   (:shadow clim:form)
   (:export #:structedit-mode
            #:structedit-table))
@@ -180,7 +180,7 @@
 (defpackage :climacs-c-syntax
   (:use :clim-lisp :clim :clim-extensions :drei-buffer :drei-base
 	:drei-syntax :drei-fundamental-syntax :flexichain :drei
-	:drei-motion :drei-editing :esa-utils :esa :drei-core :esa-io
+	:drei-editing :esa-utils :esa :drei-core :esa-io
 	:drei-lr-syntax)
   (:shadow clim:form)
   (:export #:c-syntax)
@@ -190,7 +190,7 @@ editing C code."))
 (defpackage :climacs-java-syntax
   (:use :clim-lisp :clim :clim-extensions :drei-buffer :drei-base
 	:drei-syntax :drei-fundamental-syntax :flexichain :drei
-	:drei-motion :drei-editing :esa-utils :esa :drei-core :esa-io
+	:drei-editing :esa-utils :esa :drei-core :esa-io
 	:drei-lr-syntax)
   (:shadow clim:form)
   (:export #:java-syntax)
