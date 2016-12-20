@@ -244,7 +244,7 @@ Each newline and following whitespace is replaced by a single space."
                                                      (namestring path))))))))
     (if view
         (climacs-core:switch-to-view (current-window) view)
-        (find-file (file-name location)))
+        (esa-io:find-file (file-name location)))
     (goto-position (point (current-view))
                    (char-position (source-position location)))))
 
