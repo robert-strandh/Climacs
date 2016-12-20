@@ -66,7 +66,7 @@ Entering an empty search string stops the prompting."
     (esa:display-message "~A not an existing buffer" (name view))
     (return-from com-multiple-query-replace-from-buffer nil))
   (let* ((buffer (buffer view))
-         (contents (buffer-substring buffer 0 (1- (size buffer))))
+         (contents (drei-buffer:buffer-substring buffer 0 (1- (drei-buffer:size buffer))))
 	 (strings (loop with length = (length contents)
 			with index = 0
 			with start = 0
@@ -131,7 +131,7 @@ Entering an empty search string stops the prompting."
 	 (state (query-replace-state (esa:current-window)))
 	 (string1 (string1 state))
 	 (string1-length (length string1)))
-    (backward-object point string1-length)
+    (drei-buffer:backward-object point string1-length)
     (replace-one-string point string1-length (string2 state) (no-upper-p string1))
     (incf occurrences)
     (let ((found (multiple-query-replace-find-next-match
@@ -156,7 +156,7 @@ Entering an empty search string stops the prompting."
 	 (state (query-replace-state (esa:current-window)))
 	 (string1 (string1 state))
 	 (string1-length (length string1)))
-    (backward-object point string1-length)
+    (drei-buffer:backward-object point string1-length)
     (replace-one-string point string1-length (string2 state) (no-upper-p string1))
     (incf occurrences)
     (setf (query-replace-mode (esa:current-window)) nil)))
@@ -171,7 +171,7 @@ Entering an empty search string stops the prompting."
     (loop for state = (query-replace-state (esa:current-window))
 	  for string1 = (string1 state)
 	  for string1-length = (length string1)
-	  do (backward-object point string1-length)
+	  do (drei-buffer:backward-object point string1-length)
 	     (replace-one-string point
 		     string1-length
 		     (string2 state)

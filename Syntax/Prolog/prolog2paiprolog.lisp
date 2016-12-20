@@ -22,7 +22,7 @@
 
 #+nil
 (progn
-(defclass prolog-buffer (standard-buffer) 
+(defclass prolog-buffer (drei-buffer:standard-buffer) 
   ((filepath :initform nil :accessor filepath)
    (syntax :accessor syntax)))
 
@@ -51,8 +51,8 @@
       (with-open-file (stream filepath :direction :input)
         (save-buffer-to-stream stream buffer)))
     (setf (filepath buffer) filepath
-          (offset (low-mark buffer)) 0
-          (offset (high-mark buffer)) (size buffer))
+          (drei-buffer:offset (low-mark buffer)) 0
+          (drei-buffer:offset (high-mark buffer)) (drei-buffer:size buffer))
     (update-syntax-for-display buffer (syntax buffer) (low-mark buffer) 
                                (high-mark buffer))
     buffer))

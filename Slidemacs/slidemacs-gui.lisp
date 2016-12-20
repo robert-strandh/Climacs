@@ -41,7 +41,7 @@
                     :inherit-from '(climacs-gui::global-climacs-table))
 
 (defun slidemacs-entity-string (entity)
-  (coerce (buffer-sequence (buffer entity)
+  (coerce (drei-buffer:buffer-sequence (buffer entity)
                            (1+ (start-offset entity))
                            (1- (end-offset entity)))
           'string))
@@ -179,8 +179,8 @@
 (defmethod display-parse-tree ((parse-tree slidemacs-slide) (syntax slidemacs-gui-syntax) pane)
   (when (or *postscript-display*
             (with-slots (point) pane
-              (and (mark>= point (start-offset parse-tree))
-                   (mark<= point (end-offset parse-tree)))))
+              (and (drei-buffer:mark>= point (start-offset parse-tree))
+                   (drei-buffer:mark<= point (end-offset parse-tree)))))
     (when (boundp '*did-display-a-slide*)
       (setf *did-display-a-slide* t))
     (with-slots (slidemacs-slide-name nonempty-list-of-bullets)
@@ -203,8 +203,8 @@
 (defmethod display-parse-tree ((parse-tree slidemacs-graph-slide) (syntax slidemacs-gui-syntax) pane)
   (when (or *postscript-display*
             (with-slots (point) pane
-              (and (mark>= point (start-offset parse-tree))
-                   (mark<= point (end-offset parse-tree)))))
+              (and (drei-buffer:mark>= point (start-offset parse-tree))
+                   (drei-buffer:mark<= point (end-offset parse-tree)))))
     (when (boundp '*did-display-a-slide*)
       (setf *did-display-a-slide* t))
     (with-slots (slidemacs-slide-name orientation list-of-roots list-of-edges)
@@ -278,8 +278,8 @@
   (with-text-style (pane `(:sans-serif :roman ,(getf *slidemacs-sizes* :bullet)))
     (if (and (not *postscript-display*)
              (with-slots (point) pane
-               (and (mark>= point (start-offset entity))
-                    (mark<= point (end-offset entity)))))
+               (and (drei-buffer:mark>= point (start-offset entity))
+                    (drei-buffer:mark<= point (end-offset entity)))))
         (with-text-face (pane :bold)
           (call-next-method))
         (call-next-method))))
@@ -428,7 +428,7 @@
   (with-slots (ink face) entity
     (setf ink (medium-ink (sheet-medium pane))
           face (text-style-face (medium-text-style (sheet-medium pane))))
-    (present (coerce (buffer-sequence (buffer syntax)
+    (present (coerce (drei-buffer:buffer-sequence (buffer syntax)
                                       (start-offset entity)
                                       (end-offset entity))
                      'string)
@@ -489,13 +489,13 @@
          (syntax (syntax buffer)))
     (with-slots (point) pane
       (with-slots (lexer) syntax
-        (let ((point-pos (offset point)))
+        (let ((point-pos (drei-buffer:offset point)))
           (loop for token from 0 below (nb-lexemes lexer)
                for lexeme = (lexeme lexer token)
              do
              (when (and (talking-point-stop-p lexeme)
                         (> (start-offset lexeme) point-pos))
-               (return (setf (offset point) (start-offset lexeme)))))
+               (return (setf (drei-buffer:offset point) (start-offset lexeme)))))
           (full-redisplay pane))))))
 
 (define-command (com-previous-talking-point :name t :command-table slidemacs-table) ()
@@ -504,13 +504,13 @@
          (syntax (syntax buffer)))
     (with-slots (point) pane
       (with-slots (lexer) syntax
-        (let ((point-pos (offset point)))
+        (let ((point-pos (drei-buffer:offset point)))
           (loop for token from (1- (nb-lexemes lexer)) downto 0
              for lexeme = (lexeme lexer token)
              do
              (when (and (talking-point-stop-p lexeme)
                         (< (start-offset lexeme) point-pos))
-               (return (setf (offset point) (start-offset lexeme)))))
+               (return (setf (drei-buffer:offset point) (start-offset lexeme)))))
           (full-redisplay pane))))))
 
 (defun adjust-font-sizes (decrease-p)

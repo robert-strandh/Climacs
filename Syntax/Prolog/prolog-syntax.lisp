@@ -56,9 +56,9 @@
                                   :grammar *prolog-grammar*
                                   :target 'prolog-text))
       (setf lexer (make-instance 'prolog-lexer :buffer buffer :syntax syntax))
-      (let ((m (make-buffer-mark buffer 0 :left))
+      (let ((m (drei-buffer:make-buffer-mark buffer 0 :left))
             (lexeme (make-instance 'start-lexeme :state (initial-state parser))))
-        (setf (offset m) 0)
+        (setf (drei-buffer:offset m) 0)
         (setf (start-offset lexeme) m
               (end-offset lexeme) 0)
         (insert-lexeme lexer 0 lexeme)))))
@@ -167,14 +167,14 @@
   (let ((string (make-array 0 :element-type 'character
 			    :fill-pointer 0 :adjustable t)))
     (flet ((fo ()
-	     (vector-push-extend (object-after scan) string)
-	     (forward-object scan))
+	     (vector-push-extend (drei-buffer:object-after scan) string)
+	     (drei-buffer:forward-object scan))
 	   (bo ()
 	     (vector-pop string)
-	     (backward-object scan)))
+	     (drei-buffer:backward-object scan)))
       (macrolet ((read-quoted-char (char)
 		   `(block read-quoted-char
-		     (let ((o (object-after scan)))
+		     (let ((o (drei-buffer:object-after scan)))
 		       (tagbody
 			START
 			  (cond 
@@ -182,16 +182,16 @@
 			    ((eql o ,char) (fo) (go QUOTE))
 			    (t (fo) (return-from read-quoted-char t)))
 			QUOTE
-			  (if (end-of-buffer-p scan)
+			  (if (drei-buffer:end-of-buffer-p scan)
 			      (return-from read-quoted-char nil)
-			      (let ((o (object-after scan)))
+			      (let ((o (drei-buffer:object-after scan)))
 				(cond
 				  ((eql o ,char) (fo) (return-from read-quoted-char t))
 				  (t (return-from read-quoted-char nil)))))
 			ESCAPE
-			  (if (end-of-buffer-p scan)
+			  (if (drei-buffer:end-of-buffer-p scan)
 			      (return (make-instance 'error-lexeme))
-			      (let ((o (object-after scan)))
+			      (let ((o (drei-buffer:object-after scan)))
 				(cond
 				  ;; meta (6.5.5)
 				  ((position o "\\'\"`") (fo) (return-from read-quoted-char t))
@@ -201,30 +201,30 @@
 				  ((digit-char-p o 8) (fo)
 				   (tagbody
 				    LOOP
-				      (when (end-of-buffer-p scan)
+				      (when (drei-buffer:end-of-buffer-p scan)
 					(return (make-instance 'error-lexeme)))
-				      (let ((o (object-after scan)))
+				      (let ((o (drei-buffer:object-after scan)))
 					(cond
 					  ((eql o #\\) (fo) (return-from read-quoted-char t))
 					  ((digit-char-p o 8) (fo) (go LOOP))
 					  (t (return (make-instance 'error-lexeme)))))))
 				  ((eql o #\x) (fo)
-				   (if (or (end-of-buffer-p scan)
-					   (not (digit-char-p (object-after scan) 16)))
+				   (if (or (drei-buffer:end-of-buffer-p scan)
+					   (not (digit-char-p (drei-buffer:object-after scan) 16)))
 				       (return (make-instance 'error-lexeme))
 				       (progn 
 					 (fo)
 					 (tagbody
 					  LOOP
-					    (when (end-of-buffer-p scan)
+					    (when (drei-buffer:end-of-buffer-p scan)
 					      (return (make-instance 'error-lexeme)))
-					    (let ((o (object-after scan)))
+					    (let ((o (drei-buffer:object-after scan)))
 					      (cond
 						((eql o #\\) (fo) (return-from read-quoted-char t))
 						((digit-char-p o 16) (fo) (go LOOP))
 						(t (return (make-instance 'error-lexeme)))))))))
 				  (t (return (make-instance 'error-lexeme)))))))))))
-      (let ((object (object-after scan)))
+      (let ((object (drei-buffer:object-after scan)))
 	(block nil
 	  (tagbody
 	   START
@@ -244,8 +244,8 @@
 	       ((digit-char-p object) (fo) (go NUMBER))
 	       ((eql object #\") (fo) (go CHAR-CODE-LIST))
 	       ((eql object #\()
-		(if (or (beginning-of-buffer-p scan)
-			(not (member (object-before scan) '(#\Space #\Tab #\Newline))))
+		(if (or (drei-buffer:beginning-of-buffer-p scan)
+			(not (member (drei-buffer:object-before scan) '(#\Space #\Tab #\Newline))))
 		    (progn (fo) (return (make-instance 'open-ct-lexeme)))
 		    (progn (fo) (return (make-instance 'open-lexeme)))))
 	       ((eql object #\)) (fo) (return (make-instance 'close-lexeme)))
@@ -259,23 +259,23 @@
 	       ((eql object #\.) (error "shouldn't get here"))
 	       (t (fo) (return (make-instance 'error-lexeme))))
 	   IDENTIFIER
-	     (loop until (end-of-buffer-p scan)
-		   while (let ((object (object-after scan)))
+	     (loop until (drei-buffer:end-of-buffer-p scan)
+		   while (let ((object (drei-buffer:object-after scan)))
 			   (or (alphanumericp object)
 			       (eql object #\_)))
 		   do (fo))
 	     (return (make-instance 'identifier-lexeme))
            LINE-COMMENT
-             (loop until (end-of-buffer-p scan)
-                   until (eql (object-after scan) #\Newline)
+             (loop until (drei-buffer:end-of-buffer-p scan)
+                   until (eql (drei-buffer:object-after scan) #\Newline)
                    do (fo))
-             (if (end-of-buffer-p scan)
+             (if (drei-buffer:end-of-buffer-p scan)
                  (return (make-instance 'error-lexeme))
                  (return (make-instance 'single-line-comment-lexeme)))
            COMMENT-OR-GRAPHIC
-             (if (end-of-buffer-p scan)
+             (if (drei-buffer:end-of-buffer-p scan)
                  (return (make-instance 'graphic-lexeme))
-                 (let ((object (object-after scan)))
+                 (let ((object (drei-buffer:object-after scan)))
                    (cond
                      ((eql object #\*) (fo) (go COMMENT))
                      ((not (position object "#$&*+-./:<=>?@^~\\"))
@@ -283,24 +283,24 @@
                      (t (fo) (go GRAPHIC-TOKEN)))))
            COMMENT
              (cond
-               ((end-of-buffer-p scan)
+               ((drei-buffer:end-of-buffer-p scan)
                 (return (make-instance 'error-lexeme)))
-               ((eql (object-after scan) #\*)
+               ((eql (drei-buffer:object-after scan) #\*)
                 (fo)
                 (cond
-                  ((end-of-buffer-p scan)
+                  ((drei-buffer:end-of-buffer-p scan)
                    (return (make-instance 'error-lexeme)))
-                  ((eql (object-after scan) #\/)
+                  ((eql (drei-buffer:object-after scan) #\/)
                    (fo)
                    (return (make-instance 'bracketed-comment-lexeme)))
                   (t (fo) (go COMMENT))))
                (t (fo) (go COMMENT)))
            GRAPHIC-TOKEN
-	     (loop until (end-of-buffer-p scan)
-		while (position (object-after scan) "#$&*+-./:<=>?@^~\\")
+	     (loop until (drei-buffer:end-of-buffer-p scan)
+		while (position (drei-buffer:object-after scan) "#$&*+-./:<=>?@^~\\")
 		do (fo))
 	     (cond
-	       ((end-of-buffer-p scan)
+	       ((drei-buffer:end-of-buffer-p scan)
 		(cond
 		  ((string= string ".")
 		   (return (make-instance 'end-lexeme)))
@@ -309,33 +309,33 @@
 		(cond
 		  ((and (string= string ".") 
                         (or (whitespacep (syntax lexer)
-                                         (object-after scan))
-                            (eql (object-after scan) #\%)))
+                                         (drei-buffer:object-after scan))
+                            (eql (drei-buffer:object-after scan) #\%)))
 		   (return (make-instance 'end-lexeme)))
 		  (t (return (make-instance 'graphic-lexeme))))))
 	   QUOTED-TOKEN
 	     (loop named #:mu
-		   until (end-of-buffer-p scan)
+		   until (drei-buffer:end-of-buffer-p scan)
 		   while (read-quoted-char #\'))
 	     (return (make-instance 'quoted-lexeme))
 	   VARIABLE
-	     (if (or (end-of-buffer-p scan)
-                     (let ((object (object-after scan)))
+	     (if (or (drei-buffer:end-of-buffer-p scan)
+                     (let ((object (drei-buffer:object-after scan)))
                        (not (or (alphanumericp object)
                                 (eql object #\_)))))
 		 (return (make-instance 'anonymous-lexeme))
 		 (go NAMED-VARIABLE))
 	   NAMED-VARIABLE
-	     (loop until (end-of-buffer-p scan)
-		while (let ((object (object-after scan)))
+	     (loop until (drei-buffer:end-of-buffer-p scan)
+		while (let ((object (drei-buffer:object-after scan)))
                         (or (alphanumericp object)
                             (eql object #\_)))
 		do (fo))
 	     (return (make-instance 'named-lexeme))
 	   NUMBER-OR-INTEGER
-	     (if (end-of-buffer-p scan)
+	     (if (drei-buffer:end-of-buffer-p scan)
 		 (return (make-instance 'integer-lexeme))
-		 (let ((object (object-after scan)))
+		 (let ((object (drei-buffer:object-after scan)))
 		   (cond
 		     ((eql object #\') (fo) (go CHARACTER-CODE-CONSTANT))
 		     ((eql object #\b) (fo) (go BINARY-CONSTANT))
@@ -349,55 +349,55 @@
 		 (return (make-instance 'character-code-constant-lexeme))
 		 (return (make-instance 'error-lexeme)))
 	   BINARY-CONSTANT
-	     (loop until (end-of-buffer-p scan)
-		   while (digit-char-p (object-after scan) 2)
+	     (loop until (drei-buffer:end-of-buffer-p scan)
+		   while (digit-char-p (drei-buffer:object-after scan) 2)
 		   do (fo))
 	     (return (make-instance 'binary-constant-lexeme))
 	   OCTAL-CONSTANT
-	     (loop until (end-of-buffer-p scan)
-		   while (digit-char-p (object-after scan) 8)
+	     (loop until (drei-buffer:end-of-buffer-p scan)
+		   while (digit-char-p (drei-buffer:object-after scan) 8)
 		   do (fo))
 	     (return (make-instance 'octal-constant-lexeme))
 	   HEXADECIMAL-CONSTANT
-	     (loop until (end-of-buffer-p scan)
-		   while (digit-char-p (object-after scan) 16)
+	     (loop until (drei-buffer:end-of-buffer-p scan)
+		   while (digit-char-p (drei-buffer:object-after scan) 16)
 		   do (fo))
 	     (return (make-instance 'hexadecimal-constant-lexeme))
 	   NUMBER
-	     (loop until (end-of-buffer-p scan)
-                   when (eql (object-after scan) #\.) 
+	     (loop until (drei-buffer:end-of-buffer-p scan)
+                   when (eql (drei-buffer:object-after scan) #\.) 
                      do (fo) and do (go INTEGER-AND-END-OR-FLOAT)
-		   while (digit-char-p (object-after scan))
+		   while (digit-char-p (drei-buffer:object-after scan))
 		   do (fo))
 	     (return (make-instance 'integer-constant-lexeme))
 	   CHAR-CODE-LIST
 	     (loop named #:mu
-		   until (end-of-buffer-p scan)
+		   until (drei-buffer:end-of-buffer-p scan)
 		   while (read-quoted-char #\"))
 	     (return (make-instance 'char-code-list-lexeme))
            INTEGER-AND-END-OR-FLOAT
-             (when (or (end-of-buffer-p scan)
-                       (let ((object (object-after scan)))
+             (when (or (drei-buffer:end-of-buffer-p scan)
+                       (let ((object (drei-buffer:object-after scan)))
                          (or (eql object #\%)
                              (whitespacep (syntax lexer)
                                           object))))
                (bo)
                (return (make-instance 'integer-lexeme)))
-             (loop until (end-of-buffer-p scan)
-                   while (digit-char-p (object-after scan))
+             (loop until (drei-buffer:end-of-buffer-p scan)
+                   while (digit-char-p (drei-buffer:object-after scan))
                    do (fo))
-             (when (or (end-of-buffer-p scan)
-                       (not (member (object-after scan) '(#\e #\E))))
+             (when (or (drei-buffer:end-of-buffer-p scan)
+                       (not (member (drei-buffer:object-after scan) '(#\e #\E))))
                (return (make-instance 'float-number-lexeme)))
              (fo)
-             (when (end-of-buffer-p scan)
+             (when (drei-buffer:end-of-buffer-p scan)
                (return (make-instance 'error-lexeme)))
-             (when (member (object-after scan) '(#\+ #\-))
+             (when (member (drei-buffer:object-after scan) '(#\+ #\-))
                (fo)
-               (when (end-of-buffer-p scan)
+               (when (drei-buffer:end-of-buffer-p scan)
                  (return (make-instance 'error-lexeme))))
-             (loop until (end-of-buffer-p scan)
-                   while (digit-char-p (object-after scan))
+             (loop until (drei-buffer:end-of-buffer-p scan)
+                   while (digit-char-p (drei-buffer:object-after scan))
                    do (fo))
              (return (make-instance 'float-number-lexeme)))))))))
 
@@ -805,7 +805,7 @@
 	(let* ((a (arg-list right))
 	       (exp (arg-list-nth 1 a))
 	       (term (term exp)))
-	  (let ((string (coerce (buffer-sequence (buffer term)
+	  (let ((string (coerce (drei-buffer:buffer-sequence (buffer term)
 						 (start-offset term)
 						 (end-offset term))
 				'string)))
@@ -1095,7 +1095,7 @@
 (defun lexeme-string (thing)
   (check-type thing prolog-lexeme)
   (coerce
-   (buffer-sequence (buffer thing)
+   (drei-buffer:buffer-sequence (buffer thing)
                     (start-offset thing)
                     (end-offset thing))
    'string))
@@ -1113,7 +1113,7 @@
 (defun numeric-constant-value (thing)
   (parse-integer
    (coerce
-    (buffer-sequence (buffer thing) (start-offset thing) (end-offset thing))
+    (drei-buffer:buffer-sequence (buffer thing) (start-offset thing) (end-offset thing))
     'string)))
 
 (defun first-lexeme (thing)
@@ -1142,62 +1142,62 @@
   (when (< end prefix-size)
     (return-from update-syntax (values 0 prefix-size)))
   (with-slots (lexer valid-parse) syntax
-    (let* ((low-mark (make-buffer-mark (buffer syntax) prefix-size :left))
-           (high-mark (make-buffer-mark
-                       (buffer syntax) (- (size (buffer syntax)) suffix-size) :left)))
+    (let* ((low-mark (drei-buffer:make-buffer-mark (buffer syntax) prefix-size :left))
+           (high-mark (drei-buffer:make-buffer-mark
+                       (buffer syntax) (- (drei-buffer:size (buffer syntax)) suffix-size) :left)))
       ;; this bit really belongs in a method on a superclass --
       ;; something like incremental-lexer.
-      (when (mark<= low-mark high-mark)
+      (when (drei-buffer:mark<= low-mark high-mark)
 	(with-slots (drei-syntax::lexemes valid-lex)
 	    lexer
 	  (let ((start 1)
 		(end (nb-elements drei-syntax::lexemes)))
 	    (loop while (< start end)
 		  do (let ((middle (floor (+ start end) 2)))
-		       (if (mark< (end-offset (element* drei-syntax::lexemes middle))
+		       (if (drei-buffer:mark< (end-offset (element* drei-syntax::lexemes middle))
 				  low-mark)
 			   (setf start (1+ middle))
 			   (setf end middle))))
 	    (setf valid-lex start)
 	    (setf valid-parse start))))
       ;; this bit is truly prolog-syntax specific.
-      (when (mark<= low-mark high-mark)
+      (when (drei-buffer:mark<= low-mark high-mark)
 	(with-slots (operator-directives) syntax
 	  (do ((directives operator-directives (cdr directives)))
 	      ((null directives) (setf operator-directives nil))
 	    (when (< (end-offset (car directives))
-		     (offset low-mark))
+		     (drei-buffer:offset low-mark))
 	      (setf operator-directives directives)
 	      (return nil)))))))
   ;; old update-syntax-for-display
   (with-slots (parser lexer valid-parse) syntax
     (with-slots (drei-syntax::lexemes valid-lex) lexer
-      (let ((scan (make-buffer-mark (buffer syntax) prefix-size :left))
-	    (high-mark (make-buffer-mark (buffer syntax) (- (size (buffer syntax)) suffix-size) :left)))
-        (setf (offset scan)
+      (let ((scan (drei-buffer:make-buffer-mark (buffer syntax) prefix-size :left))
+	    (high-mark (drei-buffer:make-buffer-mark (buffer syntax) (- (drei-buffer:size (buffer syntax)) suffix-size) :left)))
+        (setf (drei-buffer:offset scan)
               (end-offset (lexeme lexer (1- valid-lex))))
 	;; this magic belongs in a superclass' method.  (It's not the
 	;; same as HTML/Common Lisp relexing, though)
         (loop named relex
 	      do (skip-inter-lexeme-objects lexer scan)
-              until (end-of-buffer-p scan)
+              until (drei-buffer:end-of-buffer-p scan)
 	      until (and (<= end (start-offset (lexeme lexer (1- valid-lex))))
 			 (typep (lexeme lexer (1- valid-lex)) 'end-lexeme))
-	      do (when (mark> scan high-mark)
+	      do (when (drei-buffer:mark> scan high-mark)
 		   (do ()
 		       ((= (nb-lexemes lexer) valid-lex))
 		     (let ((l (lexeme lexer valid-lex)))
 		       (cond
-			 ((mark< scan (start-offset l))
+			 ((drei-buffer:mark< scan (start-offset l))
 			  (return nil))
-			 ((mark= scan (start-offset l))
+			 ((drei-buffer:mark= scan (start-offset l))
 			  (setf valid-lex (nb-lexemes lexer))
 			  (return-from relex))
 			 (t
 			  (delete* drei-syntax::lexemes valid-lex))))))
-	      do (let* ((start-mark (clone-mark scan))
+	      do (let* ((start-mark (drei-buffer:clone-mark scan))
 			(lexeme (next-lexeme lexer scan))
-			(size (- (offset scan) (offset start-mark))))
+			(size (- (drei-buffer:offset scan) (drei-buffer:offset start-mark))))
 		   (setf (slot-value lexeme 'drei-syntax::start-mark) start-mark
 			 (slot-value lexeme 'drei-syntax::size) size)
 		   (insert-lexeme lexer valid-lex lexeme)
@@ -1228,10 +1228,10 @@
 			 (advance-parse parser (list next-lexeme) 
 					(slot-value current-token 'state)))
 		   (incf valid-parse))))
-      (let ((scan (make-buffer-mark (buffer syntax) 0 :left)))
-	(setf (offset scan) (end-offset (lexeme lexer (1- valid-parse))))
+      (let ((scan (drei-buffer:make-buffer-mark (buffer syntax) 0 :left)))
+	(setf (drei-buffer:offset scan) (end-offset (lexeme lexer (1- valid-parse))))
 	(skip-inter-lexeme-objects lexer scan)
-	(values 0 (offset scan))))))
+	(values 0 (drei-buffer:offset scan))))))
 
 ;;; display
 (defclass pump-state ()
@@ -1306,7 +1306,7 @@
 	 ;; we have given the parser a chance to lex and parse beyond
 	 ;; the last lexeme.
 	 (when (= (1+ index) (slot-value (lexer syntax) 'valid-lex))
-	   (let ((next (min (size (buffer syntax))
+	   (let ((next (min (drei-buffer:size (buffer syntax))
 			    (1+ (drei::prefix-size view)))))
 	     (update-parse syntax 0 next)))
 	 (cond

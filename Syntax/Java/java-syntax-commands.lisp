@@ -58,13 +58,13 @@
     ()
   "Fill paragraph at point. Will have no effect unless there is a
 string at point."
-  (let* ((token (form-around (current-syntax) (offset (point))))
+  (let* ((token (form-around (current-syntax) (drei-buffer:offset (point))))
          (fill-column (auto-fill-column (current-view))))
     (when (typep token 'string-form)
       (with-accessors ((offset1 start-offset)
                        (offset2 end-offset)) token
-        (fill-region (make-buffer-mark (current-buffer) offset1 :right)
-                     (make-buffer-mark (current-buffer) offset2 :right)
+        (fill-region (drei-buffer:make-buffer-mark (current-buffer) offset1 :right)
+                     (drei-buffer:make-buffer-mark (current-buffer) offset2 :right)
                      #'(lambda (mark)
                          (syntax-line-indentation
                           mark (tab-space-count (current-view)) (current-syntax)))
@@ -75,7 +75,7 @@ string at point."
 
 (define-command (com-indent-expression :name t :command-table java-table)
     ((count 'integer :prompt "Number of expressions"))
-  (let* ((mark (clone-mark (point))))
+  (let* ((mark (drei-buffer:clone-mark (point))))
     (if (plusp count)
         (loop repeat count do (drei-motion:forward-expression mark (current-syntax)))
         (loop repeat (- count) do (drei-motion:backward-expression mark (current-syntax))))

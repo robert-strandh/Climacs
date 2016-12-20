@@ -82,13 +82,13 @@
   #.(format nil "Prompt for a filename and insert its contents at point.~@
                  Leaves mark after the inserted contents.")
   (when (probe-file filename)
-    (setf (mark) (clone-mark (point) :left))
+    (setf (drei-buffer:mark) (drei-buffer:clone-mark (point) :left))
     (with-open-file (stream filename :direction :input)
       (climacs-core:input-from-stream stream
 				      (esa:current-buffer)
-				      (offset (point))))
-    (psetf (offset (mark)) (offset (point))
-           (offset (point)) (offset (mark))))
+				      (drei-buffer:offset (point))))
+    (psetf (drei-buffer:offset (drei-buffer:mark)) (drei-buffer:offset (point))
+           (drei-buffer:offset (point)) (drei-buffer:offset (drei-buffer:mark))))
   (clim:redisplay-frame-panes *application-frame*))
 
 (esa:set-key `(com-insert-file ,*unsupplied-argument-marker*)
@@ -100,7 +100,7 @@
   #.(format nil "Replace the contents of the current buffer~@
                  with the contents of the visited file.~@
                  Signals an error if the file does not exist.")
-  (let* ((save (offset (point)))
+  (let* ((save (drei-buffer:offset (point)))
          (filepath (filepath (esa:current-buffer))))
     (when (clim:accept 'boolean
 		       :prompt (format nil
@@ -116,7 +116,7 @@
 	     (erase-buffer (esa:current-buffer))
 	     (with-open-file (stream filepath :direction :input)
 	       (climacs-core:input-from-stream stream (esa:current-buffer) 0))
-	     (setf (offset (point)) (min (size (esa:current-buffer)) save)
+	     (setf (drei-buffer:offset (point)) (min (drei-buffer:size (esa:current-buffer)) save)
 		   (esa-buffer:file-saved-p (esa:current-buffer)) nil))
 	    (t
 	     (esa:display-message "No file ~A" filepath)

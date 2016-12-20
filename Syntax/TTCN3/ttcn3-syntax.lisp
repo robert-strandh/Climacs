@@ -45,7 +45,7 @@
 
 (defmethod lexeme-string ((thing ttcn3-entry))
   (coerce
-   (buffer-sequence (buffer thing)
+   (drei-buffer:buffer-sequence (buffer thing)
                     (start-offset thing)
                     (end-offset thing))
    'string))
@@ -82,8 +82,8 @@
        (or (alphanumericp var) (eql var #\_))))
 
 (defmethod next-lexeme ((lexer ttcn3-lexer) scan)
-  (flet ((fo () (forward-object scan)))
-    (let ((object (object-after scan)))
+  (flet ((fo () (drei-buffer:forward-object scan)))
+    (let ((object (drei-buffer:object-after scan)))
       (macrolet ((dispatch-object (&body cases)
 		   `(case object
 		      ,@(loop for case in cases
@@ -101,20 +101,20 @@
 	 (#\; line-or-statement-terminator-symbol)
 	 (#\. dot)
 	 (#\, comma)
-	 (#\: (if (and (not (end-of-buffer-p scan))
-		       (eql (object-after scan) #\=))
+	 (#\: (if (and (not (drei-buffer:end-of-buffer-p scan))
+		       (eql (drei-buffer:object-after scan) #\=))
 		  (progn (fo) (make-instance 'assignment))
 		  (make-instance 'other-entry)))
 	 (t
 	  (cond
 	    ((digit-char-p object)
-	     (loop until (end-of-buffer-p scan)
-		while (digit-char-p (object-after scan))
+	     (loop until (drei-buffer:end-of-buffer-p scan)
+		while (digit-char-p (drei-buffer:object-after scan))
 		do (fo))
 	     (make-instance 'number-form))
 	    ((identifier-char-p object :start t)
-	     (loop until (end-of-buffer-p scan)
-		while (identifier-char-p (object-after scan))
+	     (loop until (drei-buffer:end-of-buffer-p scan)
+		while (identifier-char-p (drei-buffer:object-after scan))
 		do (fo))
 	     (make-instance 'identifier))
 	    (t (fo) (make-instance 'other-entry)))))))))
@@ -135,9 +135,9 @@
 				:grammar *ttcn3-grammar*
 				:target 'ttcn3-terminals))
     (setf lexer (make-instance 'ttcn3-lexer :buffer (buffer syntax)))
-    (let ((m (clone-mark (low-mark buffer) :left))
+    (let ((m (drei-buffer:clone-mark (low-mark buffer) :left))
 	   (lexeme (make-instance 'start-lexeme :state (initial-state parser))))
-      (setf (offset m) 0)
+      (setf (drei-buffer:offset m) 0)
       (setf (start-offset lexeme) m
 	    (end-offset lexeme) 0)
       (insert-lexeme lexer 0 lexeme))))
@@ -182,7 +182,7 @@
 (defgeneric word-is (word string))
 
 (defmethod word-is (word string)
-  (string-equal (coerce (buffer-sequence (buffer word) (start-offset word) (end-offset word)) 'string)
+  (string-equal (coerce (drei-buffer:buffer-sequence (buffer word) (start-offset word) (end-offset word)) 'string)
 		string))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -346,7 +346,7 @@
 		     (with-slots (ink face) entity
 		       (setf ink (medium-ink (sheet-medium pane))
 			     face (text-style-face (medium-text-style (sheet-medium pane))))
-		       (present (coerce (buffer-sequence (buffer syntax)
+		       (present (coerce (drei-buffer:buffer-sequence (buffer syntax)
 							 (start-offset entity)
 							 (end-offset entity))
 					'string)
@@ -372,7 +372,7 @@
 (defmethod update-syntax-for-display (buffer (syntax ttcn3-syntax) top bot)
   (with-slots (parser lexer valid-parse) syntax
     (loop until (= valid-parse (nb-lexemes lexer))
-       while (mark<= (end-offset (lexeme lexer valid-parse)) bot)
+       while (drei-buffer:mark<= (end-offset (lexeme lexer valid-parse)) bot)
        do (let ((current-token (lexeme lexer (1- valid-parse)))
 		(next-lexeme (lexeme lexer valid-parse)))
 	    (setf (slot-value next-lexeme 'state)
@@ -386,7 +386,7 @@
   (with-slots (lexer valid-parse) syntax
     (let* ((low-mark (low-mark buffer))
 	   (high-mark (high-mark buffer)))
-       (when (mark<= low-mark high-mark)
+       (when (drei-buffer:mark<= low-mark high-mark)
 	 (let ((first-invalid-position (delete-invalid-lexemes lexer low-mark high-mark)))
 	   (setf valid-parse first-invalid-position)
 	   (update-lex lexer first-invalid-position high-mark))))))
@@ -402,7 +402,7 @@
     (with-sheet-medium (medium pane)
       (with-accessors ((cursor-positions cursor-positions)) (syntax buffer)
         (loop while (< start end)
-           do (case (buffer-object buffer start)
+           do (case (drei-buffer:buffer-object buffer start)
                 (#\Newline (record-line-vertical-offset pane (syntax buffer) (incf *current-line*))
                            (terpri pane)
                            (stream-increment-cursor-position
@@ -421,7 +421,7 @@
 
 (defmethod display-parse-tree :around ((entity ttcn3-parse-tree) pane drei syntax)
   (with-slots (top bot) pane
-    (when (and (end-offset entity) (mark> (end-offset entity) top))
+    (when (and (end-offset entity) (drei-buffer:mark> (end-offset entity) top))
       (call-next-method))))
 
 (defmethod display-drei-contents ((pane clim-stream-pane) (drei drei) (syntax ttcn3-syntax))
@@ -433,25 +433,25 @@
             (aref cursor-positions 0) (multiple-value-list
                                        (stream-cursor-position pane))))
     (with-slots (lexer) syntax
-      (let ((average-token-size (max (float (/ (size (buffer pane)) (nb-lexemes lexer)))
+      (let ((average-token-size (max (float (/ (drei-buffer:size (buffer pane)) (nb-lexemes lexer)))
 				     1.0)))
 	;; find the last token before bot
-	(let ((end-token-index (max (floor (/ (offset bot) average-token-size)) 1)))
+	(let ((end-token-index (max (floor (/ (drei-buffer:offset bot) average-token-size)) 1)))
 	  ;; go back to a token before bot
-	  (loop until (mark<= (end-offset (lexeme lexer (1- end-token-index))) bot)
+	  (loop until (drei-buffer:mark<= (end-offset (lexeme lexer (1- end-token-index))) bot)
 	     do (decf end-token-index))
 	  ;; go forward to the last token before bot
 	  (loop until (or (= end-token-index (nb-lexemes lexer))
-			  (mark> (start-offset (lexeme lexer end-token-index)) bot))
+			  (drei-buffer:mark> (start-offset (lexeme lexer end-token-index)) bot))
 	     do (incf end-token-index))
 	  (let ((start-token-index end-token-index))
 	    ;; go back to the first token after top, or until the previous token
 	    ;; contains a valid parser state
-	    (loop until (or (mark<= (end-offset (lexeme lexer (1- start-token-index))) top)
+	    (loop until (or (drei-buffer:mark<= (end-offset (lexeme lexer (1- start-token-index))) top)
 			    (not (parse-state-empty-p 
 				  (slot-value (lexeme lexer (1- start-token-index)) 'state))))
                do (decf start-token-index))
-	    (let ((*white-space-start* (offset top)))
+	    (let ((*white-space-start* (drei-buffer:offset top)))
 	      ;; display the parse tree if any
 	      (unless (parse-state-empty-p (slot-value (lexeme lexer (1- start-token-index)) 'state))
 		(display-parse-state (slot-value (lexeme lexer (1- start-token-index)) 'state)

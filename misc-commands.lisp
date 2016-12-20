@@ -50,15 +50,15 @@
                  of the buffers objects before point.~@
                  ~@
                  FIXME: gives no information at end of buffer.")
-  (let* ((char (or (end-of-buffer-p (point)) (object-after (point))))
-	 (column (column-number (point))))
+  (let* ((char (or (drei-buffer:end-of-buffer-p (point)) (drei-buffer:object-after (point))))
+	 (column (drei-buffer:column-number (point))))
     (esa:display-message "Char: ~:[none~*~;~:*~:C (#o~O ~:*~D ~:*#x~X)~] point=~D of ~D (~D%) column ~D"
 		     (and (characterp char) char)
 		     (and (characterp char) (char-code char))
-		     (offset (point)) (size (esa:current-buffer))
-		     (if (size (esa:current-buffer))
-                         (round (* 100 (/ (offset (point))
-                                          (size (esa:current-buffer)))))
+		     (drei-buffer:offset (point)) (drei-buffer:size (esa:current-buffer))
+		     (if (drei-buffer:size (esa:current-buffer))
+                         (round (* 100 (/ (drei-buffer:offset (point))
+                                          (drei-buffer:size (esa:current-buffer)))))
                          100)
 		     column)))
 

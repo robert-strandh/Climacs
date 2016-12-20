@@ -193,46 +193,46 @@ their values."
 	    (split-attribute line #\;))))
 
 (defun find-attribute-line-position (buffer)
-  (let ((scan (make-buffer-mark buffer 0)))
+  (let ((scan (drei-buffer:make-buffer-mark buffer 0)))
     ;; skip the leading whitespace
-    (loop until (end-of-buffer-p scan)
-       until (not (buffer-whitespacep (object-after scan)))
-       do (forward-object scan))
+    (loop until (drei-buffer:end-of-buffer-p scan)
+       until (not (buffer-whitespacep (drei-buffer:object-after scan)))
+       do (drei-buffer:forward-object scan))
     ;; stop looking if we're already 1,000 objects into the buffer
-    (unless (> (offset scan) 1000)
+    (unless (> (drei-buffer:offset scan) 1000)
       (let ((start-found
 	     (loop with newlines = 0
-                when (end-of-buffer-p scan)
+                when (drei-buffer:end-of-buffer-p scan)
                 do (return nil)
-                when (eql (object-after scan) #\Newline)
+                when (eql (drei-buffer:object-after scan) #\Newline)
                 do (incf newlines)
                 when (> newlines 1)
                 do (return nil)
                 until (looking-at scan "-*-")
-                do (forward-object scan)
+                do (drei-buffer:forward-object scan)
                 finally (return t))))
 	(when start-found
-          (let* ((end-scan (clone-mark scan))
+          (let* ((end-scan (drei-buffer:clone-mark scan))
                  (end-found
-                  (loop when (end-of-buffer-p end-scan)
+                  (loop when (drei-buffer:end-of-buffer-p end-scan)
                      do (return nil)
-                     when (eql (object-after end-scan) #\Newline)
+                     when (eql (drei-buffer:object-after end-scan) #\Newline)
                      do (return nil)
-                     do (forward-object end-scan)
+                     do (drei-buffer:forward-object end-scan)
                      until (looking-at end-scan "-*-")
                      finally (return t))))
             (when end-found
               (values scan
-                      (progn (forward-object end-scan 3)
+                      (progn (drei-buffer:forward-object end-scan 3)
                              end-scan)))))))))
 
 (defun get-attribute-line (buffer)
   (multiple-value-bind (start-mark end-mark)
       (find-attribute-line-position buffer)
    (when (and start-mark end-mark)
-     (let ((line (buffer-substring buffer
-				   (offset start-mark)
-				   (offset end-mark))))
+     (let ((line (drei-buffer:buffer-substring buffer
+				   (drei-buffer:offset start-mark)
+				   (drei-buffer:offset end-mark))))
        (when (>= (length line) 6)
 	 (let ((end (search "-*-" line :from-end t :start2 3)))
 	   (when end
@@ -247,18 +247,18 @@ their values."
        (find-attribute-line-position (buffer view))
      (cond ((not (null end-mark))
             ;; We have an existing attribute line.
-            (delete-region start-mark end-mark)
-            (let ((new-line-start (clone-mark start-mark :left)))
+            (drei-buffer:delete-region start-mark end-mark)
+            (let ((new-line-start (drei-buffer:clone-mark start-mark :left)))
               (insert-sequence start-mark full-attribute-line)
               (comment-region (syntax view)
                               new-line-start
                               start-mark)))
            (t
             ;; Create a new attribute line at beginning of buffer.
-            (let* ((mark1 (make-buffer-mark (buffer view) 0 :left))
-                   (mark2 (clone-mark mark1 :right)))
+            (let* ((mark1 (drei-buffer:make-buffer-mark (buffer view) 0 :left))
+                   (mark2 (drei-buffer:clone-mark mark1 :right)))
               (insert-sequence mark2 full-attribute-line)
-              (insert-object mark2 #\Newline)
+              (drei-buffer:insert-object mark2 #\Newline)
               (comment-region (syntax view)
                               mark1
                               mark2)))))))
@@ -333,7 +333,7 @@ file if necessary."
                                                   (typep window 'climacs-pane))
                                               (esa:windows esa:*esa-instance*))
                                      (split-window t))))
-                 (setf (offset (point buffer)) (offset (point view))
+                 (setf (drei-buffer:offset (point buffer)) (drei-buffer:offset (point view))
                        (syntax view) (make-syntax-for-view view (syntax-class-name-for-filepath filepath))
                        (file-write-time buffer) (if newp (get-universal-time) (file-write-date filepath))
                        (needs-saving buffer) nil
@@ -342,7 +342,7 @@ file if necessary."
                  (evaluate-attribute-line view)
                  (setf (filepath buffer) (pathname filepath)
                        (read-only-p buffer) readonlyp)
-                 (beginning-of-buffer (point view))
+                 (drei-buffer:beginning-of-buffer (point view))
                  buffer))))))
 
 (defun directory-of-buffer (buffer)

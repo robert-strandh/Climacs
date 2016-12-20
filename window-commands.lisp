@@ -83,15 +83,15 @@
     (let ((new-x (floor x (stream-character-width window #\m)))
           (new-y (floor y (stream-line-height window)))
           (buffer (buffer (clim:view window))))
-      (loop for scan from (offset top)
+      (loop for scan from (drei-buffer:offset top)
 	    with lines = 0
-	    until (= scan (offset bot))
+	    until (= scan (drei-buffer:offset bot))
 	    until (= lines new-y)
-	    when (eql (buffer-object buffer scan) #\Newline)
+	    when (eql (drei-buffer:buffer-object buffer scan) #\Newline)
 	      do (incf lines)
 	    finally (loop for columns from 0
-			  until (= scan (offset bot))
-			  until (eql (buffer-object buffer scan) #\Newline)
+			  until (= scan (drei-buffer:offset bot))
+			  until (eql (drei-buffer:buffer-object buffer scan) #\Newline)
 			  until (= columns new-x)
 			  do (incf scan))
 		    (return scan)))))
@@ -103,7 +103,7 @@
   (other-window window)
   (when (and (buffer-pane-p window)
              (typep (clim:view window) 'point-mark-view))
-    (setf (offset (point (clim:view window)))
+    (setf (drei-buffer:offset (point (clim:view window)))
 	  (click-to-offset window x y))))
 
 (define-presentation-to-command-translator blank-area-to-switch-to-this-window
@@ -118,7 +118,7 @@
     ((window 'pane) (x 'integer) (y 'integer))
   (when (and (buffer-pane-p window)
 	     (eq window (esa:current-window)))
-    (setf (offset (mark (clim:view window)))
+    (setf (drei-buffer:offset (drei-buffer:mark (clim:view window)))
 	  (click-to-offset window x y))
     (drei-commands::com-exchange-point-and-mark)
     (drei-commands::com-copy-region)))
@@ -134,7 +134,7 @@
     ((window 'pane) (x 'integer) (y 'integer))
   (when (buffer-pane-p window)
     (other-window window)
-    (setf (offset (point (clim:view window)))
+    (setf (drei-buffer:offset (point (clim:view window)))
 	  (click-to-offset window x y))
     (drei-commands::com-yank)))
 

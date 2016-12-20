@@ -39,13 +39,13 @@ the buffer `buffer' and the filepath `filepath'."
 
 (defmethod esa-io:check-buffer-writability ((application-frame climacs) (filepath pathname)
                                      (buffer drei-buffer))
-  (do-buffer-region (object offset buffer 0 (size buffer))
+  (do-buffer-region (object offset buffer 0 (drei-buffer:size buffer))
     (unless (characterp object)
       (buffer-contains-noncharacter buffer filepath)))
   (call-next-method))
 
 (defmethod frame-save-buffer-to-stream ((application-frame climacs) (buffer climacs-buffer) stream)
-  (let ((seq (buffer-sequence buffer 0 (size buffer))))
+  (let ((seq (drei-buffer:buffer-sequence buffer 0 (drei-buffer:size buffer))))
     (if (every #'characterp seq)
         (write-sequence seq stream)
         (esa:display-message "Cannot save to file, buffer contains non-character object"))))
@@ -54,7 +54,7 @@ the buffer `buffer' and the filepath `filepath'."
   (let* ((seq (make-string (file-length stream)))
          (count (#+mcclim read-sequence #-mcclim cl:read-sequence
                           seq stream)))
-    (insert-buffer-sequence buffer offset
+    (drei-buffer:insert-buffer-sequence buffer offset
                             (if (= count (length seq))
                                 seq
                                 (subseq seq 0 count)))))

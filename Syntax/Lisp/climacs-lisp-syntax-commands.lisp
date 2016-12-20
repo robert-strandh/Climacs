@@ -78,7 +78,7 @@ The expanded expression will be displayed in a
     ()
   "Evaluate the expression before point in the local Lisp image
 and print the resulting value to the \"*Results*\"-buffer."
-  (let* ((token (form-before (current-syntax) (offset (point)))))
+  (let* ((token (form-before (current-syntax) (drei-buffer:offset (point)))))
     (if token
         (let ((*read-base* (base (current-syntax)))
               (exp (form-to-object (current-syntax) token :read t)))
@@ -92,12 +92,12 @@ and print the resulting value to the \"*Results*\"-buffer."
             (let* ((current-view (esa-current-window *esa-instance*))
                    (view (climacs-core:switch-or-move-to-view (current-window) "*Results*")))
               (set-syntax view "Lisp")
-              (end-of-buffer (point))
-              (unless (beginning-of-buffer-p (point))
-                (insert-object (point) #\Newline))
+              (drei-buffer:end-of-buffer (point))
+              (unless (drei-buffer:beginning-of-buffer-p (point))
+                (drei-buffer:insert-object (point) #\Newline))
               (insert-sequence (point)
                                (format nil "~{~A~%~}" values))
-              (insert-object (point) #\Newline)
+              (drei-buffer:insert-object (point) #\Newline)
               (climacs-gui:other-window current-view))))
         (esa:display-message "Nothing to evaluate at point."))))
 
@@ -153,7 +153,7 @@ If there is no symbol at point, this is a no-op."
     (when (and this-symbol (symbolp this-symbol))
       (let ((local-definition (find-local-definition (current-syntax) token)))
         (if local-definition
-            (setf (offset (point)) (start-offset local-definition))
+            (setf (drei-buffer:offset (point)) (start-offset local-definition))
             (edit-definition this-symbol))))))
 
 (define-command (com-return-from-definition :name t :command-table climacs-lisp-table)

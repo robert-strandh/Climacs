@@ -71,8 +71,8 @@
 (defclass cl-lexer (incremental-lexer) ())
 
 (defmethod next-lexeme ((lexer cl-lexer) scan)
-  (flet ((fo () (forward-object scan)))
-    (let ((object (object-after scan)))
+  (flet ((fo () (drei-buffer:forward-object scan)))
+    (let ((object (drei-buffer:object-after scan)))
       (case object
 	(#\( (fo) (make-instance 'paren-open))
 	(#\) (fo) (make-instance 'paren-close))
@@ -90,20 +90,20 @@
 	(#\. (fo) (make-instance 'dot))
 	(#\+ (fo) (make-instance 'plus-symbol))
 	(#\- (fo) (make-instance 'minus-symbol))
-	(#\; (fo) (loop until (end-of-buffer-p scan)
-		        until (eql (object-after scan) #\Newline)
+	(#\; (fo) (loop until (drei-buffer:end-of-buffer-p scan)
+		        until (eql (drei-buffer:object-after scan) #\Newline)
 		     do (fo))
-	     (if (end-of-buffer-p scan)
+	     (if (drei-buffer:end-of-buffer-p scan)
 		 (make-instance 'other-entry) 
 		 (make-instance 'line-comment-entry)))
 	(t (cond ((digit-char-p object) 
-		  (loop until (end-of-buffer-p scan)
-		     while (digit-char-p (object-after scan))
+		  (loop until (drei-buffer:end-of-buffer-p scan)
+		     while (digit-char-p (drei-buffer:object-after scan))
 		     do (fo))
 		  (make-instance 'default-item))
 		 ((neutralcharp object)
-		  (loop until (end-of-buffer-p scan)
-		     while (neutralcharp (object-after scan))
+		  (loop until (drei-buffer:end-of-buffer-p scan)
+		     while (neutralcharp (drei-buffer:object-after scan))
 		     do (fo))
 		  (make-instance 'default-item))
 		 (t (fo)
@@ -133,7 +133,7 @@
   `(add-rule (grammar-rule ,rule) *cl-grammar*))
 
 (defun item-sequence (item)
-  (buffer-sequence (buffer item) (start-offset item) (end-offset item)))
+  (drei-buffer:buffer-sequence (buffer item) (start-offset item) (end-offset item)))
 
 (defun default-item-is (default-item string)
   (string-equal (coerce (item-sequence default-item) 'string)
@@ -347,12 +347,12 @@
 ;;;;;;;;;;;;;;;;;;;;; #-type constants 
 
 (defun item-head (default-item)
-  (coerce (buffer-sequence (buffer default-item) 
+  (coerce (drei-buffer:buffer-sequence (buffer default-item) 
 			   (start-offset default-item) 
 			   (1+ (start-offset default-item))) 'string))
 
 (defun item-tail (default-item)
-  (coerce (buffer-sequence (buffer default-item) 
+  (coerce (drei-buffer:buffer-sequence (buffer default-item) 
 			   (1+ (start-offset default-item))
 			   (end-offset default-item)) 'string))
 
@@ -983,9 +983,9 @@
 				:grammar *cl-grammar*
 				:target 'cl-terminals))
     (setf lexer (make-instance 'cl-lexer :buffer (buffer syntax)))
-    (let ((m (clone-mark (low-mark buffer) :left))
+    (let ((m (drei-buffer:clone-mark (low-mark buffer) :left))
 	   (lexeme (make-instance 'start-lexeme :state (initial-state parser))))
-      (setf (offset m) 0)
+      (setf (drei-buffer:offset m) 0)
       (setf (start-offset lexeme) m
 	    (end-offset lexeme) 0)
       (insert-lexeme lexer 0 lexeme))))
@@ -997,7 +997,7 @@
 (defmethod update-syntax-for-display (buffer (syntax cl-syntax) top bot)
   (with-slots (parser lexer valid-parse) syntax
     (loop until (= valid-parse (nb-lexemes lexer))
-       while (mark<= (end-offset (lexeme lexer valid-parse)) bot)
+       while (drei-buffer:mark<= (end-offset (lexeme lexer valid-parse)) bot)
        do (let ((current-token (lexeme lexer (1- valid-parse)))
 		(next-lexeme (lexeme lexer valid-parse)))
 	    (setf (slot-value next-lexeme 'state)
@@ -1011,7 +1011,7 @@
   (with-slots (lexer valid-parse) syntax
     (let* ((low-mark (low-mark buffer))
 	   (high-mark (high-mark buffer)))
-       (when (mark<= low-mark high-mark)
+       (when (drei-buffer:mark<= low-mark high-mark)
 	 (let ((first-invalid-position (delete-invalid-lexemes lexer low-mark high-mark)))
 	   (setf valid-parse first-invalid-position)
 	   (update-lex lexer first-invalid-position high-mark))))))
@@ -1030,8 +1030,8 @@
 	(tab-width (tab-width pane)))
     (loop while (and (< start end)
                      (whitespacep (syntax buffer)
-                                  (buffer-object buffer start)))
-          do (ecase (buffer-object buffer start)
+                                  (drei-buffer:buffer-object buffer start)))
+          do (ecase (drei-buffer:buffer-object buffer start)
                (#\Newline (terpri pane)
                           (setf (aref *cursor-positions* (incf *current-line*))
                                 (multiple-value-bind (x y) (stream-cursor-position pane)
@@ -1047,7 +1047,7 @@
 
 (defmethod display-parse-tree :around ((entity cl-parse-tree) syntax pane)
   (with-slots (top bot) pane
-    (when (and (end-offset entity) (mark> (end-offset entity) top))
+    (when (and (end-offset entity) (drei-buffer:mark> (end-offset entity) top))
       (call-next-method))))
 
 (defun color-equal (c1 c2)
@@ -1078,7 +1078,7 @@
 		     (with-slots (ink face) entity
 		       (setf ink (medium-ink (sheet-medium pane))
 			     face (text-style-face (medium-text-style (sheet-medium pane))))
-		       (present (coerce (buffer-sequence (buffer syntax)
+		       (present (coerce (drei-buffer:buffer-sequence (buffer syntax)
 							 (start-offset entity)
 							 (end-offset entity))
 					'string)
@@ -1111,25 +1111,25 @@
 	  *current-line* 0
 	  (aref *cursor-positions* 0) (stream-cursor-position pane))
     (with-slots (lexer) syntax
-      (let ((average-token-size (max (float (/ (size (buffer pane)) (nb-lexemes lexer)))
+      (let ((average-token-size (max (float (/ (drei-buffer:size (buffer pane)) (nb-lexemes lexer)))
 				     1.0)))
 	;; find the last token before bot
-	(let ((end-token-index (max (floor (/ (offset bot) average-token-size)) 1)))
+	(let ((end-token-index (max (floor (/ (drei-buffer:offset bot) average-token-size)) 1)))
 	  ;; go back to a token before bot
-	  (loop until (mark<= (end-offset (lexeme lexer (1- end-token-index))) bot)
+	  (loop until (drei-buffer:mark<= (end-offset (lexeme lexer (1- end-token-index))) bot)
 	     do (decf end-token-index))
 	  ;; go forward to the last token before bot
 	  (loop until (or (= end-token-index (nb-lexemes lexer))
-			  (mark> (start-offset (lexeme lexer end-token-index)) bot))
+			  (drei-buffer:mark> (start-offset (lexeme lexer end-token-index)) bot))
 	     do (incf end-token-index))
 	  (let ((start-token-index end-token-index))
 	    ;; go back to the first token after top, or until the previous token
 	    ;; contains a valid parser state
-	    (loop until (or (mark<= (end-offset (lexeme lexer (1- start-token-index))) top)
+	    (loop until (or (drei-buffer:mark<= (end-offset (lexeme lexer (1- start-token-index))) top)
 			    (not (parse-state-empty-p 
 				  (slot-value (lexeme lexer (1- start-token-index)) 'state))))
 		 do (decf start-token-index))
-	    (let ((*white-space-start* (offset top)))
+	    (let ((*white-space-start* (drei-buffer:offset top)))
 	      ;; display the parse tree if any
 	      (unless (parse-state-empty-p (slot-value (lexeme lexer (1- start-token-index)) 'state))
 		(display-parse-state (slot-value (lexeme lexer (1- start-token-index)) 'state)

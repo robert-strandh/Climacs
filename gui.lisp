@@ -452,22 +452,22 @@ etc."))
   (let ((point (point view))
         (bot (bot view))
         (top (top view))
-        (size (size (esa-io:buffer view))))
+        (size (drei-buffer:size (esa-io:buffer view))))
     (format info-pane "  ~A  "
-	    (cond ((and (mark= size bot)
-			(mark= 0 top))
+	    (cond ((and (drei-buffer:mark= size bot)
+			(drei-buffer:mark= 0 top))
 		   "")
-		  ((mark= size bot)
+		  ((drei-buffer:mark= size bot)
 		   "Bot")
-		  ((mark= 0 top)
+		  ((drei-buffer:mark= 0 top)
 		   "Top")
 		  (t (format nil "~a%"
-			     (round (* 100 (/ (offset top)
+			     (round (* 100 (/ (drei-buffer:offset top)
 					      size)))))))
     (when *show-info-pane-mark-position*
       (format info-pane "(~A,~A)     "
-              (1+ (line-number point))
-              (column-number point)))
+              (1+ (drei-buffer:line-number point))
+              (drei-buffer:column-number point)))
     (princ #\( info-pane)
     (call-next-method)
     (format info-pane "~{~:[~*~; ~A~]~}" (list
@@ -634,7 +634,7 @@ pane to a clone of the view in `orig-pane', provided that
 
 (defmethod setup-split-pane ((orig-pane climacs-pane) (new-pane climacs-pane) clone-view)
   (when (buffer-view-p (view orig-pane))
-    (setf (offset (point (esa-io:buffer (view orig-pane)))) (offset (point (view orig-pane)))))
+    (setf (drei-buffer:offset (point (esa-io:buffer (view orig-pane)))) (drei-buffer:offset (point (view orig-pane)))))
   (setf (view new-pane) (if clone-view
                             (clone-view-for-climacs (pane-frame orig-pane) (view orig-pane))
                             (any-preferably-undisplayed-view))))
