@@ -56,7 +56,6 @@
              #:point
              #:syntax
              #:mark
-             #:buffers
              
              #:active-group
              #:groups
@@ -79,7 +78,7 @@
              #:*climacs-target-creator*
 
              ;; The command tables
-             #:global-climacs-table #:keyboard-macro-table #:climacs-help-table
+             #:global-climacs-table #:climacs-help-table
              #:base-table #:buffer-table #:case-table 
              #:development-table
              #:info-table
