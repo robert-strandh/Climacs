@@ -241,7 +241,7 @@ window"))
  :menu `(("File" :menu esa-io-menu-table)
          ("Macros" :menu keyboard-macro-menu-table)
          ("Windows" :menu window-menu-table)
-         ("Help" :menu help-menu-table))
+         ("Help" :menu esa:help-menu-table))
  :errorp nil)
 
 (define-application-frame climacs (esa-frame-mixin
@@ -258,12 +258,12 @@ window"))
   (:menu-bar climacs-global-table)
   (:panes
    (climacs-window
-    (let* ((*esa-instance* *application-frame*)
+    (let* ((esa:*esa-instance* *application-frame*)
            (climacs-pane (make-pane 'climacs-pane :active t))
 	   (info-pane (make-pane 'climacs-info-pane
                        :master-pane climacs-pane)))
-      (unless (output-stream *esa-instance*)
-        (setf (output-stream *esa-instance*)
+      (unless (output-stream esa:*esa-instance*)
+        (setf (output-stream esa:*esa-instance*)
               (make-typeout-stream *application-frame* "*standard-output*")))
       (setf (windows *application-frame*) (list climacs-pane)
 	    (views *application-frame*) (list (view climacs-pane)))
@@ -282,21 +282,21 @@ window"))
            minibuffer))))
   (:top-level ((lambda (frame)
                  (with-frame-manager ((make-instance 'climacs-frame-manager))
-                   (esa-top-level frame :prompt "M-x "))))))
+                   (esa:esa-top-level frame :prompt "M-x "))))))
 
 (define-esa-top-level ((frame climacs) command-parser
                        command-unparser
                        partial-command-parser
                        prompt)
  :bindings ((*default-target-creator* *climacs-target-creator*)
-            (*previous-command* (previous-command (drei-instance)))
+            (esa:*previous-command* (previous-command (drei-instance)))
             (*standard-output* (or (output-stream frame)
                                    *terminal-io*))))
 
 (defmethod frame-standard-input ((frame climacs))
   (get-frame-pane frame 'minibuffer))
 
-(defmethod buffers ((climacs climacs))
+(defmethod esa:buffers ((climacs climacs))
   (remove-duplicates
    (mapcar #'buffer (remove-if-not
                      #'(lambda (view)
@@ -361,8 +361,8 @@ active."
   (setf (views frame) (list (make-new-view-for-climacs
                              frame 'textual-drei-syntax-view))))
 
-(defmethod command-for-unbound-gestures ((frame climacs) gestures)
-  (command-for-unbound-gestures (esa-current-window frame) gestures))
+(defmethod esa:command-for-unbound-gestures ((frame climacs) gestures)
+  (esa:command-for-unbound-gestures (esa-current-window frame) gestures))
 
 (defun make-view-subscript-generator (climacs)
   #'(lambda (name)
@@ -391,7 +391,7 @@ active."
 
 (defun any-view ()
   "Return some view, any view."
-  (first (views *esa-instance*)))
+  (first (views esa:*esa-instance*)))
 
 (defun any-displayed-view ()
   "Return some view on display."
@@ -409,17 +409,17 @@ false otherwise."
   "Return some view, any view, preferable one that is not
 currently displayed in any window."
   (or (find-if-not #'(lambda (view)
-                       (view-on-display *esa-instance* view))
-                   (views *esa-instance*))
+                       (view-on-display esa:*esa-instance* view))
+                   (views esa:*esa-instance*))
       (any-view)))
 
 (defun any-undisplayed-view ()
   "Return some view, any view, as long as it is not currently
 displayed in any window. If necessary, clone a view on display."
   (or (find-if-not #'(lambda (view)
-                       (view-on-display *esa-instance* view))
-                   (views *esa-instance*))
-      (clone-view-for-climacs *esa-instance* (any-view))))
+                       (view-on-display esa:*esa-instance* view))
+                   (views esa:*esa-instance*))
+      (clone-view-for-climacs esa:*esa-instance* (any-view))))
 
 (define-presentation-type read-only ())
 (define-presentation-method highlight-presentation 
@@ -505,7 +505,7 @@ etc."))
                                              (view typeout-view)))
 
 (defun display-info (frame pane)
-  (let* ((master-pane (master-pane pane))
+  (let* ((master-pane (esa:master-pane pane))
 	 (view (view master-pane)))
     (princ "   " pane)
     (display-view-status-to-info-pane pane master-pane view)
@@ -526,9 +526,9 @@ etc."))
   (display-drei drei :redisplay-minibuffer t))
 
 (defmethod execute-frame-command :around ((frame climacs) command)
-  (if (eq frame *esa-instance*)
+  (if (eq frame esa:*esa-instance*)
       (handling-drei-conditions
-        (with-undo ((buffers frame))
+        (with-undo ((esa:buffers frame))
           (call-next-method)))
       (call-next-method)))
 
@@ -641,12 +641,12 @@ pane to a clone of the view in `orig-pane', provided that
 
 (defun split-window (&optional (vertically-p nil) (clone-view nil) (pane (esa:current-window)))
   (with-look-and-feel-realization
-      ((frame-manager *esa-instance*) *esa-instance*)
+      ((frame-manager esa:*esa-instance*) esa:*esa-instance*)
     (multiple-value-bind (vbox new-pane) (make-pane-constellation)
       (let* ((current-window pane)
 	     (constellation-root (find-parent current-window)))
         (setup-split-pane current-window new-pane clone-view)
-	(push new-pane (rest (windows *esa-instance*)))
+	(push new-pane (rest (windows esa:*esa-instance*)))
 	(replace-constellation constellation-root vbox vertically-p)
 	(full-redisplay current-window)
 	(full-redisplay new-pane)
@@ -654,7 +654,7 @@ pane to a clone of the view in `orig-pane', provided that
 	new-pane))))
 
 (defun delete-window (&optional (window (esa:current-window)))
-  (unless (null (cdr (windows *esa-instance*)))
+  (unless (null (cdr (windows esa:*esa-instance*)))
     (let* ((constellation (find-parent window))
 	   (box (sheet-parent constellation))
 	   (box-children (sheet-children box))
@@ -666,8 +666,8 @@ pane to a clone of the view in `orig-pane', provided that
 	   (first (first children))
 	   (second (second children))
 	   (third (third children)))
-      (setf (windows *esa-instance*)
-	    (delete window (windows *esa-instance*)))
+      (setf (windows esa:*esa-instance*)
+	    (delete window (windows esa:*esa-instance*)))
       (sheet-disown-child box other)
       (sheet-adopt-child parent other)
       (sheet-disown-child parent box)
@@ -680,14 +680,14 @@ pane to a clone of the view in `orig-pane', provided that
 				     (list first other)))))))
 
 (defun other-window (&optional pane)
-  (if (and pane (find pane (windows *esa-instance*)))
-      (setf (windows *esa-instance*)
+  (if (and pane (find pane (windows esa:*esa-instance*)))
+      (setf (windows esa:*esa-instance*)
             (append (list pane)
-                    (remove pane (windows *esa-instance*))))
-      (setf (windows *esa-instance*)
-            (append (rest (windows *esa-instance*))
-                    (list (esa-current-window *esa-instance*)))))
-  (activate-window (esa-current-window *esa-instance*)))
+                    (remove pane (windows esa:*esa-instance*))))
+      (setf (windows esa:*esa-instance*)
+            (append (rest (windows esa:*esa-instance*))
+                    (list (esa-current-window esa:*esa-instance*)))))
+  (activate-window (esa-current-window esa:*esa-instance*)))
 
 ;;; For the ESA help functions.
 

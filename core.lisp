@@ -30,7 +30,7 @@
       (complete-input stream
 		      (lambda (so-far action)
 			(complete-from-possibilities
-			 so-far (views *esa-instance*) '()
+			 so-far (views esa:*esa-instance*) '()
                          :action action
 			 :name-key #'subscripted-name
 			 :value-key #'identity))
@@ -93,12 +93,12 @@ prevent increasing memory usage."
 it will be replaced by some other view."))
 
 (defmethod kill-view ((view view))
-  (with-accessors ((views views)) *esa-instance*
+  (with-accessors ((views views)) esa:*esa-instance*
     ;; It might be the case that this view is the only view remaining
     ;; of some particular buffer, in that case, the user might want to
     ;; save it.
     (when (and (buffer-of-view-needs-saving view)
-               (= (length (views-having-buffer *esa-instance* (buffer view)))
+               (= (length (views-having-buffer esa:*esa-instance* (buffer view)))
                   1)
                (handler-case (accept 'boolean :prompt "Save buffer first?")
                  (error () (progn (beep)
@@ -325,13 +325,13 @@ file if necessary."
                                   (with-open-file (stream filepath :direction :input)
                                     (make-buffer-from-stream stream))))
                       (view (make-new-view-for-climacs
-                             *esa-instance* 'textual-drei-syntax-view
+                             esa:*esa-instance* 'textual-drei-syntax-view
                              :name (filepath-filename filepath)
                              :buffer buffer)))
                  (unless (buffer-pane-p (esa:current-window))
                    (other-window (or (find-if #'(lambda (window)
                                                   (typep window 'climacs-pane))
-                                              (windows *esa-instance*))
+                                              (windows esa:*esa-instance*))
                                      (split-window t))))
                  (setf (offset (point buffer)) (offset (point view))
                        (syntax view) (make-syntax-for-view view (syntax-class-name-for-filepath filepath))

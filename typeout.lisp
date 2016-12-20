@@ -167,7 +167,7 @@ of the created typeout view. Returns NIL."
 used for typeout. `Label' is the name of the created typeout
 view. If `erase' is true, clear the contents of any existing
 typeout view with that name."
-  `(invoke-with-typeout-view *esa-instance* ,label ,erase
+  `(invoke-with-typeout-view esa:*esa-instance* ,label ,erase
                              #'(lambda (,stream)
                                  ,@body)))
 

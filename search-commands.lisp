@@ -61,7 +61,7 @@ Entering an empty search string stops the prompting."
 
 (define-command (com-multiple-query-replace-from-buffer :name t :command-table search-table)
     ((view 'view :prompt "View with Query Repace strings"))
-  (unless (member view (views *esa-instance*))
+  (unless (member view (views esa:*esa-instance*))
     (beep)
     (esa:display-message "~A not an existing buffer" (name view))
     (return-from com-multiple-query-replace-from-buffer nil))
@@ -117,9 +117,9 @@ Entering an empty search string stops the prompting."
 	  (esa:display-message "Replace ~A with ~A: "
 			       (string1 (query-replace-state (esa:current-window)))
 			       (string2 (query-replace-state (esa:current-window))))
-	  (simple-command-loop 'multiple-query-replace-drei-table
-			       (query-replace-mode (esa:current-window))
-			       ((setf (query-replace-mode (esa:current-window)) nil))))))
+	  (esa:simple-command-loop 'multiple-query-replace-drei-table
+	      (query-replace-mode (esa:current-window))
+	      ((setf (query-replace-mode (esa:current-window)) nil))))))
     (esa:display-message "Replaced ~D occurrence~:P" occurrences)))
 
 (define-command (com-multiple-query-replace-replace
