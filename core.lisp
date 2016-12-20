@@ -104,7 +104,7 @@ it will be replaced by some other view."))
                  (error () (progn (beep)
                                   (esa:display-message "Invalid answer")
                                   (return-from kill-view nil)))))
-      (save-buffer (buffer view)))
+      (esa-io:save-buffer (buffer view)))
     (setf views (remove view views))
     ;; If we don't change the buffer of the view, a reference to the
     ;; view will be kept in the buffer, and the view will thus not be
@@ -306,7 +306,7 @@ their values."
 file if necessary."
   (when (and (findablep pathname)
              (not (find-buffer-with-pathname pathname)))
-    (find-file pathname)))
+    (esa-io:find-file pathname)))
 
 (defun find-file-impl (filepath &optional readonlyp)
   (cond ((null filepath)

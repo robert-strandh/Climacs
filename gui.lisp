@@ -220,7 +220,7 @@ window"))
                                     development-table
                                     climacs-help-table
                                     esa:global-esa-table
-                                    esa-io-table))
+                                    esa-io:esa-io-table))
 
 ;; This command table is what assembles the various other command
 ;; tables for the commands actually accessible by the user.
@@ -238,7 +238,7 @@ window"))
 (make-command-table 'climacs-global-table
  :inherit-from (list (make-instance 'climacs-command-table
                       :name 'climacs-dispatching-table))
- :menu `(("File" :menu esa-io-menu-table)
+ :menu `(("File" :menu esa-io:esa-io-menu-table)
          ("Macros" :menu esa:keyboard-macro-menu-table)
          ("Windows" :menu window-menu-table)
          ("Help" :menu esa:help-menu-table))
@@ -298,10 +298,10 @@ window"))
 
 (defmethod esa:buffers ((climacs climacs))
   (remove-duplicates
-   (mapcar #'buffer (remove-if-not
-                     #'(lambda (view)
-                         (typep view 'drei-buffer-view))
-                     (views climacs)))))
+   (mapcar #'esa-io:buffer (remove-if-not
+			    #'(lambda (view)
+				(typep view 'drei-buffer-view))
+			    (views climacs)))))
 
 (defmethod esa:esa-current-buffer ((application-frame climacs))
   (when (buffer-pane-p (esa:esa-current-window application-frame))
@@ -452,7 +452,7 @@ etc."))
   (let ((point (point view))
         (bot (bot view))
         (top (top view))
-        (size (size (buffer view))))
+        (size (size (esa-io:buffer view))))
     (format info-pane "  ~A  "
 	    (cond ((and (mark= size bot)
 			(mark= 0 top))
@@ -488,14 +488,14 @@ etc."))
                                              (view drei-syntax-view))
   (with-output-as-presentation (info-pane view 'read-only)
     (princ (cond
-             ((read-only-p (buffer view)) "%")
-             ((needs-saving (buffer view)) "*")
+             ((read-only-p (esa-io:buffer view)) "%")
+             ((needs-saving (esa-io:buffer view)) "*")
              (t "-"))
            info-pane))
   (with-output-as-presentation (info-pane view 'modified)
     (princ (cond
-             ((needs-saving (buffer view)) "*")
-             ((read-only-p (buffer view)) "%")
+             ((needs-saving (esa-io:buffer view)) "*")
+             ((read-only-p (esa-io:buffer view)) "%")
              (t "-"))
            info-pane))
   (princ "  " info-pane))
@@ -634,7 +634,7 @@ pane to a clone of the view in `orig-pane', provided that
 
 (defmethod setup-split-pane ((orig-pane climacs-pane) (new-pane climacs-pane) clone-view)
   (when (buffer-view-p (view orig-pane))
-    (setf (offset (point (buffer (view orig-pane)))) (offset (point (view orig-pane)))))
+    (setf (offset (point (esa-io:buffer (view orig-pane)))) (offset (point (view orig-pane)))))
   (setf (view new-pane) (if clone-view
                             (clone-view-for-climacs (pane-frame orig-pane) (view orig-pane))
                             (any-preferably-undisplayed-view))))
@@ -708,7 +708,7 @@ pane to a clone of the view in `orig-pane', provided that
                      (error () (progn (beep)
                                       (esa:display-message "Invalid answer")
                                       (return-from frame-exit nil)))))
-          (save-buffer (buffer view)))
+          (esa-io:save-buffer (esa-io:buffer view)))
       (file-error (e)
         (esa:display-message "~A (hit a key to continue)" e)
         (read-gesture))))
@@ -722,10 +722,10 @@ pane to a clone of the view in `orig-pane', provided that
 (defmethod switch-to-view ((drei climacs-pane) (view drei-view))
   (setf (view drei) view))
 
-(defmethod frame-find-file ((application-frame climacs) filepath)
+(defmethod esa-io:frame-find-file ((application-frame climacs) filepath)
   (climacs-core:find-file-impl filepath nil))
 
-(defmethod frame-find-file-read-only ((application-frame climacs) filepath)
+(defmethod esa-io:frame-find-file-read-only ((application-frame climacs) filepath)
   (climacs-core:find-file-impl filepath t))
 
 (defmethod frame-set-visited-filename ((application-frame climacs) filepath buffer)

@@ -24,7 +24,7 @@
 
 (cl:in-package #:climacs-core)
 
-(define-condition buffer-contains-noncharacter (buffer-writing-error)
+(define-condition buffer-contains-noncharacter (esa-io:buffer-writing-error)
   ()
   (:report (lambda (condition stream)
              (format stream "Buffer ~A contains non-character object"
@@ -37,7 +37,7 @@ made to save a buffer that contains a non-character object."))
 the buffer `buffer' and the filepath `filepath'."
   (error 'buffer-contains-noncharacter :buffer buffer :filepath filepath))
 
-(defmethod check-buffer-writability ((application-frame climacs) (filepath pathname)
+(defmethod esa-io:check-buffer-writability ((application-frame climacs) (filepath pathname)
                                      (buffer drei-buffer))
   (do-buffer-region (object offset buffer 0 (size buffer))
     (unless (characterp object)
