@@ -108,11 +108,9 @@
            #:update-attribute-line
            #:evaluate-attribute-line
            #:directory-pathname-p
-           #:find-file #:find-file-read-only
            #:directory-of-buffer
            #:set-visited-filename
            #:check-file-times
-           #:save-buffer
 
            #:input-from-stream
            #:save-buffer-to-stream
