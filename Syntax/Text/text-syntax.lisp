@@ -59,18 +59,18 @@
 (defun index-of-mark-after-offset (flexichain offset)
   "Searches for the mark after `offset' in the marks stored in `flexichain'."
   (loop with low-position = 0
-     with high-position = (nb-elements flexichain)
+     with high-position = (flexichain:nb-elements flexichain)
      for middle-position = (floor (+ low-position high-position) 2)
      until (= low-position high-position)
-     do (if (mark>= (element* flexichain middle-position) offset)
+     do (if (mark>= (flexichain:element* flexichain middle-position) offset)
             (setf high-position middle-position)
             (setf low-position (floor (+ low-position 1 high-position) 2)))
      finally (return low-position)))
 
 (define-syntax text-syntax (drei-fundamental-syntax:fundamental-syntax)
-  ((paragraphs :initform (make-instance 'standard-flexichain))
-   (sentence-beginnings :initform (make-instance 'standard-flexichain))
-   (sentence-endings :initform (make-instance 'standard-flexichain)))
+  ((paragraphs :initform (make-instance 'flexichain:standard-flexichain))
+   (sentence-beginnings :initform (make-instance 'flexichain:standard-flexichain))
+   (sentence-endings :initform (make-instance 'flexichain:standard-flexichain)))
   (:name "Text")
   (:pathname-types "text" "txt" "README"))
 
@@ -88,15 +88,15 @@
 	    (pos-sentence-endings (index-of-mark-after-offset sentence-endings low-offset)))
         ;; start by deleting all syntax marks that are between the low and
         ;; the high marks
-        (loop repeat (- (nb-elements paragraphs) pos1)
-           while (mark<= (element* paragraphs pos1) high-offset)
-           do (delete* paragraphs pos1))
-        (loop repeat (- (nb-elements sentence-beginnings) pos-sentence-beginnings)
-           while (mark<= (element* sentence-beginnings pos-sentence-beginnings) high-offset)
-           do (delete* sentence-beginnings pos-sentence-beginnings))
-        (loop repeat (- (nb-elements sentence-endings) pos-sentence-endings)
-           while (mark<= (element* sentence-endings pos-sentence-endings) high-offset)
-           do (delete* sentence-endings pos-sentence-endings))
+        (loop repeat (- (flexichain:nb-elements paragraphs) pos1)
+           while (mark<= (flexichain:element* paragraphs pos1) high-offset)
+           do (flexichain:delete* paragraphs pos1))
+        (loop repeat (- (flexichain:nb-elements sentence-beginnings) pos-sentence-beginnings)
+           while (mark<= (flexichain:element* sentence-beginnings pos-sentence-beginnings) high-offset)
+           do (flexichain:delete* sentence-beginnings pos-sentence-beginnings))
+        (loop repeat (- (flexichain:nb-elements sentence-endings) pos-sentence-endings)
+           while (mark<= (flexichain:element* sentence-endings pos-sentence-endings) high-offset)
+           do (flexichain:delete* sentence-endings pos-sentence-endings))
 
         ;; check the zone between low-offset and high-offset for
         ;; paragraph delimiters and sentence delimiters
@@ -115,7 +115,7 @@
                                          (not (member before-prev-object '(#\Newline #\Space #\Tab)))))))
                        (let ((m (make-buffer-mark buffer low-mark-offset :left)))
                          (setf (offset m) offset)
-                         (insert* sentence-endings pos-sentence-endings m))
+                         (flexichain:insert* sentence-endings pos-sentence-endings m))
                        (incf pos-sentence-endings))
 
                       ((and (>= offset 0)
@@ -126,7 +126,7 @@
                                 (member before-prev-object '(#\. #\? #\! #\Newline #\Space #\Tab))))
                        (let ((m (make-buffer-mark buffer low-mark-offset :right)))
                          (setf (offset m) offset)
-                         (insert* sentence-beginnings pos-sentence-beginnings m))
+                         (flexichain:insert* sentence-beginnings pos-sentence-beginnings m))
                        (incf pos-sentence-beginnings))
                       (t nil))
 
@@ -140,7 +140,7 @@
                                          (eql before-prev-object #\Newline)))))
                        (let ((m (make-buffer-mark buffer low-mark-offset :left)))
                          (setf (offset m) offset)
-                         (insert* paragraphs pos1 m))
+                         (flexichain:insert* paragraphs pos1 m))
                        (incf pos1))
 
                       ((and (plusp offset) ;;Beginnings
@@ -151,7 +151,7 @@
                                          (eql next-object #\Newline)))))
                        (let ((m (make-buffer-mark buffer low-mark-offset :right)))
                          (setf (offset m) offset)
-                         (insert* paragraphs pos1 m))
+                         (flexichain:insert* paragraphs pos1 m))
                        (incf pos1))
                       (t nil)))))))
   (values 0 (size (buffer syntax))))
@@ -161,9 +161,9 @@
      (let ((pos1 (index-of-mark-after-offset paragraphs (offset mark))))
        (when (> pos1 0)
 	 (setf (offset mark)
-	       (if (typep (element* paragraphs (1- pos1)) 'right-sticky-mark)
-		   (offset (element* paragraphs (- pos1 2)))
-		   (offset (element* paragraphs (1- pos1)))))
+	       (if (typep (flexichain:element* paragraphs (1- pos1)) 'right-sticky-mark)
+		   (offset (flexichain:element* paragraphs (- pos1 2)))
+		   (offset (flexichain:element* paragraphs (1- pos1)))))
          t))))
 
 (defmethod drei-motion:forward-one-paragraph ((mark mark) (syntax text-syntax))
@@ -173,11 +173,11 @@
                  ;; if mark is at paragraph-end, jump to end of next
                  ;; paragraph
                  (1+ (offset mark)))))
-      (when (< pos1 (nb-elements paragraphs))
+      (when (< pos1 (flexichain:nb-elements paragraphs))
 	 (setf (offset mark)
-	       (if (typep (element* paragraphs pos1) 'left-sticky-mark)
-		   (offset (element* paragraphs (1+ pos1)))
-		   (offset (element* paragraphs pos1))))
+	       (if (typep (flexichain:element* paragraphs pos1) 'left-sticky-mark)
+		   (offset (flexichain:element* paragraphs (1+ pos1)))
+		   (offset (flexichain:element* paragraphs pos1))))
          t))))
 
  (defmethod drei-motion:backward-one-sentence ((mark mark) (syntax text-syntax))
@@ -185,7 +185,7 @@
       (let ((pos1 (index-of-mark-after-offset sentence-beginnings (offset mark))))
         (when (> pos1 0)
           (setf (offset mark)
-                (offset (element* sentence-beginnings (1- pos1))))
+                (offset (flexichain:element* sentence-beginnings (1- pos1))))
           t))))
 
  (defmethod drei-motion:forward-one-sentence ((mark mark) (syntax text-syntax))
@@ -195,9 +195,9 @@
                   ;; if mark is at sentence-end, jump to end of next
                   ;; sentence
                   (1+ (offset mark)))))
-       (when (< pos1 (nb-elements sentence-endings))
+       (when (< pos1 (flexichain:nb-elements sentence-endings))
  	 (setf (offset mark)
-               (offset (element* sentence-endings pos1)))
+               (offset (flexichain:element* sentence-endings pos1)))
          t))))
 
 (defmethod syntax-line-indentation ((mark mark) tab-width (syntax text-syntax))
