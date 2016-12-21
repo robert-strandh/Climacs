@@ -334,7 +334,7 @@ file if necessary."
                                               (esa:windows esa:*esa-instance*))
                                      (split-window t))))
                  (setf (drei-buffer:offset (point buffer)) (drei-buffer:offset (point view))
-                       (drei-syntax:syntax view) (make-syntax-for-view view (drei-syntax:syntax-class-name-for-filepath filepath))
+                       (drei-syntax:syntax view) (make-syntax-for-view view (syntax-class-name-for-filepath filepath))
                        (esa-buffer:file-write-time buffer) (if newp (get-universal-time) (file-write-date filepath))
                        (esa-buffer:needs-saving buffer) nil
                        (name buffer) (filepath-filename filepath))
