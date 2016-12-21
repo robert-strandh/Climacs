@@ -79,8 +79,8 @@ in some other pane, switch that pane to be the active one."
 be saved (that is, it is related to a file and it has changed
 since it was last saved)."
   (and (typep view 'drei-buffer-view)
-       (filepath (buffer view))
-       (needs-saving (buffer view))))
+       (esa-buffer:filepath (buffer view))
+       (esa-buffer:needs-saving (buffer view))))
 
 (defun dummy-buffer ()
   "Create a dummy buffer object for use when killing views, to
@@ -295,7 +295,7 @@ their values."
     (find pathname (remove-if-not #'(lambda (view)
                                       (typep view 'drei-buffer-view))
                                   (views *application-frame*))
-     :key #'(lambda (view) (filepath (buffer view)))
+     :key #'(lambda (view) (esa-buffer:filepath (buffer view)))
      :test #'(lambda (fp1 fp2)
                (and fp1 fp2
                     (equal (usable-pathname fp1)
@@ -317,11 +317,11 @@ file if necessary."
 	 (beep))
         (t
          (let ((existing-view (find-view-with-pathname filepath)))
-           (if (and existing-view (if readonlyp (read-only-p (buffer existing-view)) t))
+           (if (and existing-view (if readonlyp (esa-buffer:read-only-p (buffer existing-view)) t))
                (switch-to-view (esa:current-window) existing-view)
                (let* ((newp (not (probe-file filepath)))
                       (buffer (if (and newp (not readonlyp))
-                                  (make-new-buffer)
+                                  (esa-buffer:make-new-buffer)
                                   (with-open-file (stream filepath :direction :input)
                                     (make-buffer-from-stream stream))))
                       (view (make-new-view-for-climacs
@@ -335,13 +335,13 @@ file if necessary."
                                      (split-window t))))
                  (setf (drei-buffer:offset (point buffer)) (drei-buffer:offset (point view))
                        (drei-syntax:syntax view) (make-syntax-for-view view (drei-syntax:syntax-class-name-for-filepath filepath))
-                       (file-write-time buffer) (if newp (get-universal-time) (file-write-date filepath))
-                       (needs-saving buffer) nil
+                       (esa-buffer:file-write-time buffer) (if newp (get-universal-time) (file-write-date filepath))
+                       (esa-buffer:needs-saving buffer) nil
                        (name buffer) (filepath-filename filepath))
                  (setf (current-view (esa:current-window)) view)
                  (evaluate-attribute-line view)
-                 (setf (filepath buffer) (pathname filepath)
-                       (read-only-p buffer) readonlyp)
+                 (setf (esa-buffer:filepath buffer) (pathname filepath)
+                       (esa-buffer:read-only-p buffer) readonlyp)
                  (drei-buffer:beginning-of-buffer (point view))
                  buffer))))))
 
@@ -352,14 +352,14 @@ directory will be returned."
   (make-pathname
    :directory
    (pathname-directory
-    (or (filepath buffer)
+    (or (esa-buffer:filepath buffer)
 	(user-homedir-pathname)))))
 
 (defun check-file-times (buffer filepath question answer)
   "Return NIL if filepath newer than buffer and user doesn't want
 to overwrite."
   (let ((f-w-d (file-write-date filepath))
-	(f-w-t (file-write-time buffer)))
+	(f-w-t (esa-buffer:file-write-time buffer)))
     (if (and f-w-d f-w-t (> f-w-d f-w-t))
 	(if (accept 'boolean
 		    :prompt (format nil "File has changed on disk. ~a anyway?"

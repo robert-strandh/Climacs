@@ -239,7 +239,7 @@ Each newline and following whitespace is replaced by a single space."
                       (views *application-frame*)
                       :test #'string= :key #'(lambda (view)
                                                (when (typep view 'drei-buffer-view)
-                                                 (let ((path (filepath (buffer view))))
+                                                 (let ((path (esa-buffer:filepath (buffer view))))
                                                    (when path
                                                      (namestring path))))))))
     (if view
@@ -297,16 +297,16 @@ Each newline and following whitespace is replaced by a single space."
 
 (defun compile-file-interactively (view &optional load-p)
   (let ((buffer (buffer view)))
-    (cond ((null (filepath buffer))
+    (cond ((null (esa-buffer:filepath buffer))
            (esa:display-message "View ~A is not associated with a file" (name view)))
           (t
-           (when (and (needs-saving buffer)
+           (when (and (esa-buffer:needs-saving buffer)
                       (accept 'boolean :prompt (format nil "Save buffer ~A ?" (name view))))
              (climacs-core:save-buffer buffer))
            (let ((*read-base* (base (drei-syntax:syntax view))))
              (multiple-value-bind (result notes)
                  (compile-file-for-drei (get-usable-image (drei-syntax:syntax view))
-                                        (filepath buffer)
+                                        (esa-buffer:filepath buffer)
                                         (package-at-mark (drei-syntax:syntax view) 0) load-p)
                (show-note-counts notes (second result))
                (when notes (show-notes notes (name view) ""))))))))

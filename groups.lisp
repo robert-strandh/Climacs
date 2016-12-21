@@ -146,7 +146,7 @@ the file with that name."
   (typecase (element group)
     (drei-view
      (unless (find (element group) (views *application-frame*))
-       (ensure-open-file (pathname (filepath (element group))))))
+       (ensure-open-file (pathname (esa-buffer:filepath (element group))))))
     (pathname
      (ensure-open-file (element group)))
     (string
@@ -317,7 +317,7 @@ selected to be the active group by the user."
 
 (define-group "Current Directory Files" (group)
   (declare (ignore group))
-  (directory (make-pathname :directory (pathname-directory (filepath (current-view)))
+  (directory (make-pathname :directory (pathname-directory (esa-buffer:filepath (current-view)))
                             :name :wild
                             :type :wild)))
 

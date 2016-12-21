@@ -101,7 +101,7 @@
                  with the contents of the visited file.~@
                  Signals an error if the file does not exist.")
   (let* ((save (drei-buffer:offset (point)))
-         (filepath (filepath (esa:current-buffer))))
+         (filepath (esa-buffer:filepath (esa:current-buffer))))
     (when (clim:accept 'boolean
 		       :prompt (format nil
 				       "Revert buffer from file ~A?"

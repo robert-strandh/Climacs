@@ -49,7 +49,7 @@
   (let ((buffer (make-instance 'prolog-buffer)))
     (when (probe-file filepath)
       (with-open-file (stream filepath :direction :input)
-        (save-buffer-to-stream stream buffer)))
+        (esa-buffer:save-buffer-to-stream stream buffer)))
     (setf (filepath buffer) filepath
           (drei-buffer:offset (low-mark buffer)) 0
           (drei-buffer:offset (high-mark buffer)) (drei-buffer:size buffer))

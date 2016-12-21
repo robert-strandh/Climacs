@@ -36,7 +36,7 @@
                  contents of the buffer are changed. This flag is~@
                  consulted, for instance, when deciding whether~@
                  to prompt you to save the buffer before killing it.")
-  (setf (needs-saving (esa:current-buffer)) nil))
+  (setf (esa-buffer:needs-saving (esa:current-buffer)) nil))
 
 (esa:set-key 'com-not-modified
 	     'buffer-table

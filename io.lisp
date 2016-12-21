@@ -44,7 +44,7 @@ the buffer `buffer' and the filepath `filepath'."
       (buffer-contains-noncharacter buffer filepath)))
   (call-next-method))
 
-(defmethod frame-save-buffer-to-stream ((application-frame climacs) (buffer climacs-buffer) stream)
+(defmethod esa-buffer:frame-save-buffer-to-stream ((application-frame climacs) (buffer climacs-buffer) stream)
   (let ((seq (drei-buffer:buffer-sequence buffer 0 (drei-buffer:size buffer))))
     (if (every #'characterp seq)
         (write-sequence seq stream)
@@ -59,8 +59,8 @@ the buffer `buffer' and the filepath `filepath'."
                                 seq
                                 (subseq seq 0 count)))))
 
-(defmethod frame-make-buffer-from-stream ((application-frame climacs) stream)
-  (let* ((buffer (make-new-buffer)))
+(defmethod esa-buffer:frame-make-buffer-from-stream ((application-frame climacs) stream)
+  (let* ((buffer (esa-buffer:make-new-buffer)))
     (input-from-stream stream buffer 0)
     (clear-undo-history buffer)
     buffer))

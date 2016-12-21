@@ -488,14 +488,14 @@ etc."))
                                              (view drei-syntax-view))
   (with-output-as-presentation (info-pane view 'read-only)
     (princ (cond
-             ((read-only-p (esa-io:buffer view)) "%")
-             ((needs-saving (esa-io:buffer view)) "*")
+             ((esa-buffer:read-only-p (esa-io:buffer view)) "%")
+             ((esa-buffer:needs-saving (esa-io:buffer view)) "*")
              (t "-"))
            info-pane))
   (with-output-as-presentation (info-pane view 'modified)
     (princ (cond
-             ((needs-saving (esa-io:buffer view)) "*")
-             ((read-only-p (esa-io:buffer view)) "%")
+             ((esa-buffer:needs-saving (esa-io:buffer view)) "*")
+             ((esa-buffer:read-only-p (esa-io:buffer view)) "%")
              (t "-"))
            info-pane))
   (princ "  " info-pane))
@@ -695,7 +695,7 @@ pane to a clone of the view in `orig-pane', provided that
   (with-typeout-view (stream title t)
     (funcall continuation stream)))
 
-(defmethod frame-make-new-buffer ((application-frame climacs)
+(defmethod esa-buffer:frame-make-new-buffer ((application-frame climacs)
                                   &key (name "*scratch*"))
   (make-instance 'climacs-buffer :name name))
 
@@ -729,8 +729,8 @@ pane to a clone of the view in `orig-pane', provided that
   (climacs-core:find-file-impl filepath t))
 
 (defmethod frame-set-visited-filename ((application-frame climacs) filepath buffer)
-  (setf (filepath buffer) (pathname filepath)
-	(file-saved-p buffer) nil
-	(file-write-time buffer) nil
+  (setf (esa-buffer:filepath buffer) (pathname filepath)
+	(esa-buffer:file-saved-p buffer) nil
+	(esa-buffer:file-write-time buffer) nil
 	(name buffer) (climacs-core:filepath-filename filepath)
-	(needs-saving buffer) t))
+	(esa-buffer:needs-saving buffer) t))
