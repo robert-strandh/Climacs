@@ -97,7 +97,6 @@
   (:export #:display-string
            #:object-equal
            #:object=
-           #:no-upper-p
            #:case-relevant-test
            
            #:switch-to-view #:switch-or-move-to-view
