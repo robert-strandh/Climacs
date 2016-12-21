@@ -36,7 +36,7 @@
 (make-command-table 'pane-c-table
                     :errorp nil)
 
-(defmethod additional-command-tables append ((drei drei-pane) (command-table c-table))
+(defmethod drei-syntax:additional-command-tables append ((drei drei-pane) (command-table c-table))
   '(pane-c-table))
 
 ;; Movement commands.
@@ -60,13 +60,13 @@ string at point."
   (let* ((pane (current-window))
          (buffer (buffer pane))
          (implementation (drei-buffer:implementation buffer))
-         (syntax (syntax buffer))
+         (syntax (drei-syntax:syntax buffer))
          (token (form-around syntax (drei-buffer:offset (point pane))))
          (fill-column (auto-fill-column pane))
          (tab-width (tab-space-count (stream-default-view pane))))
     (when (form-string-p token)
-      (with-accessors ((offset1 start-offset) 
-                       (offset2 end-offset)) token
+      (with-accessors ((offset1 drei-syntax:start-offset) 
+                       (offset2 drei-syntax:end-offset)) token
         (fill-region (make-instance 'drei-buffer:standard-right-sticky-mark
                                     :buffer implementation
                                     :offset offset1)
@@ -74,7 +74,7 @@ string at point."
                                     :buffer implementation
                                     :offset offset2)
                      #'(lambda (mark)
-                         (syntax-line-indentation mark tab-width syntax))
+                         (drei-syntax:syntax-line-indentation mark tab-width syntax))
                      fill-column
                      tab-width
                      syntax
@@ -85,7 +85,7 @@ string at point."
   (let* ((pane (current-window))
          (point (point pane))
          (mark (drei-buffer:clone-mark point))
-         (syntax (syntax (buffer pane))))
+         (syntax (drei-syntax:syntax (buffer pane))))
     (if (plusp count)
         (loop repeat count do (drei-motion:forward-expression mark syntax))
         (loop repeat (- count) do (drei-motion:backward-expression mark syntax)))

@@ -28,14 +28,14 @@
 
 ;;;# The command table.
 
-(define-syntax-command-table java-table
+(drei-syntax:define-syntax-command-table java-table
     :errorp nil)
 
 ;;;# The syntax object.
 ;;;
 ;;; We could add options here.
 
-(define-syntax java-syntax (lr-syntax-mixin fundamental-syntax)
+(drei-syntax:define-syntax java-syntax (lr-syntax-mixin fundamental-syntax)
   ((package :accessor package-of
 	    :documentation "A list of strings being the components of
 the `package' definition, if any."))
@@ -47,9 +47,9 @@ the `package' definition, if any."))
 ;;; Now some ways to indicate what the syntax is. Extra details could be
 ;;; added. For now we'll show the package, if any.
 
-(defmethod name-for-info-pane ((syntax java-syntax) &key pane)
+(defmethod drei-syntax:name-for-info-pane ((syntax java-syntax) &key pane)
   (declare (ignore pane))
-  (update-parse syntax)
+  (drei-syntax:update-parse syntax)
   (format nil "Java~@[:~{~A~^.~}~]"
 	  (package-of syntax)))
 
@@ -99,7 +99,7 @@ the `package' definition, if any."))
 ;;; Finally, we define the relevant lexeme. We will check the `ink' and
 ;;; and the `face' later during redisplay.
 
-(defclass java-lexeme (lexeme)
+(defclass java-lexeme (drei-syntax:lexeme)
   ((ink)
    (face)))
 
@@ -316,7 +316,7 @@ the `package' definition, if any."))
   (macrolet ((fo () `(drei-buffer:forward-object scan)))
     (loop when (drei-buffer:end-of-buffer-p scan)
 	    do (return nil)
-	  until (not (whitespacep syntax (drei-buffer:object-after scan)))
+	  until (not (drei-syntax:whitespacep syntax (drei-buffer:object-after scan)))
 	  do (fo)
 	  finally (return t))))
 
@@ -498,7 +498,7 @@ the `package' definition, if any."))
 		       scan)
   (macrolet ((fo () `(drei-buffer:forward-object scan)))
     (loop until (or (drei-buffer:end-of-line-p scan)
-		    (not (whitespacep syntax (drei-buffer:object-after scan))))
+		    (not (drei-syntax:whitespacep syntax (drei-buffer:object-after scan))))
 	  do (fo)
 	  finally (return t))))
 
@@ -763,7 +763,7 @@ the `package' definition, if any."))
 			collect (form-string syntax component) into components
 		      finally (setf (package-of syntax) components)))))
 
-(defmethod update-syntax :after ((syntax java-syntax) prefix-size suffix-size
+(defmethod drei-syntax:update-syntax :after ((syntax java-syntax) prefix-size suffix-size
                                  &optional begin end)
   (declare (ignore begin end))
   (update-package-name (buffer syntax) syntax))
@@ -775,9 +775,9 @@ the `package' definition, if any."))
 (defun form-string (syntax form)
   "Return the string that correspond to `form' in the buffer of
 `syntax'."
-  (drei-buffer:buffer-substring (buffer syntax) (start-offset form) (end-offset form)))
+  (drei-buffer:buffer-substring (buffer syntax) (drei-syntax:start-offset form) (drei-syntax:end-offset form)))
 
-(define-syntax-highlighting-rules default-java-highlighting
+(drei-syntax:define-syntax-highlighting-rules default-java-highlighting
   (error-symbol (*error-drawing-options*))
   (string-form (*string-drawing-options*))
   (operator (*special-operator-drawing-options*))
@@ -816,10 +816,10 @@ treat comments as forms."
   (loop for count from (1- (length tlv)) downto 0
 	for tlf = (aref tlv count)
 	when (and (or (not ignore-comments-p) (not (commentp tlf)))
-		  (< (start-offset tlf) offset (end-offset tlf)))
+		  (< (drei-syntax:start-offset tlf) offset (drei-syntax:end-offset tlf)))
 	  return (values tlf count)
 	when (and (or (not ignore-comments-p) (not (commentp tlf)))
-		  (<= (end-offset tlf) offset))
+		  (<= (drei-syntax:end-offset tlf) offset))
 	  return (values tlf count)
 	finally (return nil)))
 
@@ -832,10 +832,10 @@ treat comments as forms."
   (loop for tlf across tlv
 	for count from 0
 	when (and (or (not ignore-comments-p) (not (commentp tlf)))
-		  (< (start-offset tlf) offset (end-offset tlf)))
+		  (< (drei-syntax:start-offset tlf) offset (drei-syntax:end-offset tlf)))
 	  return (values tlf count)
 	when (and (or (not ignore-comments-p) (not (commentp tlf)))
-		  (>= (start-offset tlf) offset))
+		  (>= (drei-syntax:start-offset tlf) offset))
 	  return (values tlf count)
 	finally (return nil)))
 
@@ -848,10 +848,10 @@ treat comments as forms."
   (loop for tlf across tlv
 	for count from 0
 	when (and (or (not ignore-comments-p) (not (commentp tlf)))
-		  (< (start-offset tlf) offset (end-offset tlf)))
+		  (< (drei-syntax:start-offset tlf) offset (drei-syntax:end-offset tlf)))
 	  return (values tlf count)
 	when (and (or (not ignore-comments-p) (not (commentp tlf)))
-		  (>= (start-offset tlf) offset))
+		  (>= (drei-syntax:start-offset tlf) offset))
 	  return nil
 	finally (return nil)))
 
@@ -917,10 +917,10 @@ treat comments as forms."
 		    do (decf delims)
 		  until (zerop delims)
 		  finally (cond ((zerop delims)
-				 (setf (drei-buffer:offset mark) (start-offset match))
+				 (setf (drei-buffer:offset mark) (drei-syntax:start-offset match))
 				 (return t))
 				(t (return nil))))
-	    (setf (drei-buffer:offset mark) (start-offset form)))))))
+	    (setf (drei-buffer:offset mark) (drei-syntax:start-offset form)))))))
 
 (defmethod drei-motion:forward-one-expression ((mark mark) (syntax java-syntax))
   (let ((tlv (top-level-vector syntax)))
@@ -938,10 +938,10 @@ treat comments as forms."
 		    do (decf delims)
 		  until (zerop delims)
 		  finally (cond ((zerop delims)
-				 (setf (drei-buffer:offset mark) (end-offset match))
+				 (setf (drei-buffer:offset mark) (drei-syntax:end-offset match))
 				 (return t))
 				(t (return nil))))
-	    (setf (drei-buffer:offset mark) (end-offset form)))))))
+	    (setf (drei-buffer:offset mark) (drei-syntax:end-offset form)))))))
 
 (defmethod drei-motion:forward-one-list (mark (syntax java-syntax))
   (let ((tlv (top-level-vector syntax)))
@@ -960,7 +960,7 @@ treat comments as forms."
 							 (car delims))
 				   (pop delims)
 				   (when (null delims)
-				     (setf (drei-buffer:offset mark) (end-offset match))
+				     (setf (drei-buffer:offset mark) (drei-syntax:end-offset match))
 				     (return t)))
 				  (t (return nil)))))
 	      finally (return nil))))))
@@ -983,7 +983,7 @@ treat comments as forms."
 						     (car delims))
 			       (pop delims)
 			       (when (null delims)
-				 (setf (drei-buffer:offset mark) (start-offset match))
+				 (setf (drei-buffer:offset mark) (drei-syntax:start-offset match))
 				 (return t)))
 			      (t (return nil))))) 
 	      finally (return nil))))))
@@ -998,7 +998,7 @@ treat comments as forms."
 	(loop for index from count downto 0
 	      for match = (aref tlv index)
 	      when (closing-delimiter-p match)
-		do (setf (drei-buffer:offset mark) (start-offset match))
+		do (setf (drei-buffer:offset mark) (drei-syntax:start-offset match))
 		   (return t)
 	      finally (return nil))))))
 
@@ -1014,7 +1014,7 @@ treat comments as forms."
 		do (push match delims)
 	      when (opening-delimiter-p match)
 		do (cond ((null delims)
-			  (setf (drei-buffer:offset mark) (start-offset match))
+			  (setf (drei-buffer:offset mark) (drei-syntax:start-offset match))
 			  (return t))
 			 ((matching-delimiter-p match 
 						(car delims))
@@ -1030,7 +1030,7 @@ treat comments as forms."
 	(loop for index from count below (length tlv)
 	      for match = (aref tlv index)
 	      when (opening-delimiter-p match)
-		do (setf (drei-buffer:offset mark) (end-offset match))
+		do (setf (drei-buffer:offset mark) (drei-syntax:end-offset match))
 		   (return t)
 	      finally (return nil))))))
 
@@ -1046,7 +1046,7 @@ treat comments as forms."
 		do (push match delims)
 	      when (closing-delimiter-p match)
 		do (cond ((null delims)
-			  (setf (drei-buffer:offset mark) (end-offset match))
+			  (setf (drei-buffer:offset mark) (drei-syntax:end-offset match))
 			  (return t))
 			 ((matching-delimiter-p match 
 						(car delims))
@@ -1062,7 +1062,7 @@ treat comments as forms."
 
 ;;;# Indentation
 
-(defmethod syntax-line-indentation (mark tab-width (syntax java-syntax))
+(defmethod drei-syntax:syntax-line-indentation (mark tab-width (syntax java-syntax))
   (setf mark (drei-buffer:clone-mark mark))
   (let ((this-indentation (line-indentation mark tab-width)))
     (drei-buffer:beginning-of-line mark)
@@ -1074,14 +1074,14 @@ treat comments as forms."
 
 ;;;# Commenting
 
-(defmethod syntax-line-comment-string ((syntax java-syntax))
+(defmethod drei-syntax:syntax-line-comment-string ((syntax java-syntax))
   "// ")
 
-(defmethod comment-region ((syntax java-syntax) mark1 mark2)
-  (line-comment-region syntax mark1 mark2))
+(defmethod drei-syntax:comment-region ((syntax java-syntax) mark1 mark2)
+  (drei-syntax:line-comment-region syntax mark1 mark2))
 
-(defmethod uncomment-region ((syntax java-syntax) mark1 mark2)
-  (line-uncomment-region syntax mark1 mark2))
+(defmethod drei-syntax:uncomment-region ((syntax java-syntax) mark1 mark2)
+  (drei-syntax:line-uncomment-region syntax mark1 mark2))
 
 ;; ;;; TESTING
 

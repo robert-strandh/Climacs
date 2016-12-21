@@ -376,7 +376,7 @@ active."
   (let ((new-view (apply #'clone-view view
                    :subscript-generator (make-view-subscript-generator climacs)
                    :active nil initargs)))
-    (setf (syntax new-view) (make-syntax-for-view new-view (class-of (syntax view))))
+    (setf (drei-syntax:syntax new-view) (make-syntax-for-view new-view (class-of (drei-syntax:syntax view))))
     (push new-view (views climacs))
     new-view))
 
@@ -444,7 +444,7 @@ etc."))
                                            (master-pane climacs-pane)
                                            (view drei-syntax-view))
   (with-text-family (info-pane :sans-serif)
-    (display-syntax-name (syntax view) info-pane :view view)))
+    (drei-syntax:display-syntax-name (drei-syntax:syntax view) info-pane :view view)))
 
 (defmethod display-view-info-to-info-pane ((info-pane climacs-info-pane)
                                            (master-pane climacs-pane)

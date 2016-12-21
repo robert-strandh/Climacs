@@ -75,7 +75,7 @@
      (ccl:run-program "/usr/bin/open" `(,url) :wait nil))
 
 (define-command (com-set-syntax :name t :command-table buffer-table) 
-    ((syntax 'syntax
+    ((syntax 'drei-syntax:syntax
       :prompt "Name of syntax"))
   #.(format nil "Prompts for a syntax to set for the current buffer.~@
                  Setting a syntax will cause the buffer to be~@

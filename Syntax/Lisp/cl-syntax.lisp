@@ -29,7 +29,7 @@
 ;;;
 ;;; grammar classes
 
-(defclass cl-parse-tree (parse-tree) ())
+(defclass cl-parse-tree (drei-syntax:parse-tree) ())
 
 (defclass cl-entry (cl-parse-tree)
   ((ink) (face)
@@ -68,9 +68,9 @@
 (defclass default-item (cl-lexeme) ())
 (defclass other-entry (cl-lexeme) ())
 
-(defclass cl-lexer (incremental-lexer) ())
+(defclass cl-lexer (drei-syntax:incremental-lexer) ())
 
-(defmethod next-lexeme ((lexer cl-lexer) scan)
+(defmethod drei-syntax:next-lexeme ((lexer cl-lexer) scan)
   (flet ((fo () (drei-buffer:forward-object scan)))
     (let ((object (drei-buffer:object-after scan)))
       (case object
@@ -110,7 +110,7 @@
 		    (make-instance 'other-entry))))))))
 
 
-(define-syntax cl-syntax (fundamental-syntax)
+(drei-syntax:define-syntax cl-syntax (fundamental-syntax)
   ((lexer :reader lexer)
    (valid-parse :initform 1)
    (parser))
@@ -127,13 +127,13 @@
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;; parser
 
-(defparameter *cl-grammar* (grammar))
+(defparameter *cl-grammar* (drei-syntax:grammar))
 
 (defmacro add-cl-rule (rule)
-  `(add-rule (grammar-rule ,rule) *cl-grammar*))
+  `(drei-syntax:add-rule (drei-syntax:grammar-rule ,rule) *cl-grammar*))
 
 (defun item-sequence (item)
-  (drei-buffer:buffer-sequence (buffer item) (start-offset item) (end-offset item)))
+  (drei-buffer:buffer-sequence (buffer item) (drei-syntax:start-offset item) (drei-syntax:end-offset item)))
 
 (defun default-item-is (default-item string)
   (string-equal (coerce (item-sequence default-item) 'string)
@@ -199,9 +199,9 @@
 							:test #'default-item-is))))
 			 :item (make-instance 'empty-item) :ch ch))
 
-(add-cl-rule (token-item -> ((item token-item) (ch token-char (= (end-offset
+(add-cl-rule (token-item -> ((item token-item) (ch token-char (= (drei-syntax:end-offset
 								  item)
-								 (start-offset
+								 (drei-syntax:start-offset
 								  ch))))
 			 :item item :ch ch))
 
@@ -302,13 +302,13 @@
    (end-hex :initarg :end-hex)))
 
 (add-cl-rule (balanced-comment -> ((start-hex hex)
-				   (start-pipe pipe (= (end-offset
+				   (start-pipe pipe (= (drei-syntax:end-offset
 							start-hex)
-						       (start-offset start-pipe)))
+						       (drei-syntax:start-offset start-pipe)))
 				   (item identifier-items)
 				   (end-pipe pipe)
-				   (end-hex hex (= (end-offset end-pipe)
-						   (start-offset end-hex))))
+				   (end-hex hex (= (drei-syntax:end-offset end-pipe)
+						   (drei-syntax:start-offset end-hex))))
 			       :start-hex start-hex
 			       :start-pipe start-pipe
 			       :item item
@@ -348,13 +348,13 @@
 
 (defun item-head (default-item)
   (coerce (drei-buffer:buffer-sequence (buffer default-item) 
-			   (start-offset default-item) 
-			   (1+ (start-offset default-item))) 'string))
+			   (drei-syntax:start-offset default-item) 
+			   (1+ (drei-syntax:start-offset default-item))) 'string))
 
 (defun item-tail (default-item)
   (coerce (drei-buffer:buffer-sequence (buffer default-item) 
-			   (1+ (start-offset default-item))
-			   (end-offset default-item)) 'string))
+			   (1+ (drei-syntax:start-offset default-item))
+			   (drei-syntax:end-offset default-item)) 'string))
 
 (defun radix-is (num-string radix)
   (values (ignore-errors
@@ -373,8 +373,8 @@
 
 (add-cl-rule (hexadecimal-expr -> ((start hex)
 				   (item token-item
-					 (and (= (end-offset start)
-						 (start-offset item))
+					 (and (= (drei-syntax:end-offset start)
+						 (drei-syntax:start-offset item))
 					      (string-equal (item-head item) #\x)
 					      (radix-is (item-tail item) 16))))
 			       :start start :item item))
@@ -383,8 +383,8 @@
 
 (add-cl-rule (octal-expr -> ((start hex)
 			     (item default-item
-				   (and (= (end-offset start)
-					   (start-offset item))
+				   (and (= (drei-syntax:end-offset start)
+					   (drei-syntax:start-offset item))
 					(string-equal (item-head item) #\o)
 					(radix-is (item-tail item) 8))))
 			 :start start :item item))
@@ -393,8 +393,8 @@
 
 (add-cl-rule (binary-expr -> ((start hex)
 			      (item default-item
-				    (and (= (end-offset start)
-					    (start-offset item))
+				    (and (= (drei-syntax:end-offset start)
+					    (drei-syntax:start-offset item))
 					 (string-equal (item-head item) #\b)
 					 (radix-is (item-tail
 						    item) 2))))
@@ -417,10 +417,10 @@
    (item :initarg :item)))
 
 (add-cl-rule (radix-n-expr -> ((start hex)
-			       (radix simple-number (= (end-offset start)
-						       (start-offset radix)))
-			       (item default-item (and (= (end-offset radix)
-							  (start-offset item))
+			       (radix simple-number (= (drei-syntax:end-offset start)
+						       (drei-syntax:start-offset radix)))
+			       (item default-item (and (= (drei-syntax:end-offset radix)
+							  (drei-syntax:start-offset item))
 						       (string-equal
 							(item-head item) #\r)
 						       (radix-is
@@ -442,20 +442,20 @@
    (secondary :initarg :secondary)))
 
 (add-cl-rule (real-number -> ((primary simple-number)
-			      (separator slash (= (end-offset primary)
-						  (start-offset separator)))
-			      (secondary simple-number (= (end-offset
+			      (separator slash (= (drei-syntax:end-offset primary)
+						  (drei-syntax:start-offset separator)))
+			      (secondary simple-number (= (drei-syntax:end-offset
 							   separator)
-							  (start-offset secondary))))
+							  (drei-syntax:start-offset secondary))))
 			  :primary primary :separator separator
 			  :secondary secondary))
 
 (add-cl-rule (real-number -> ((primary simple-number)
-			      (separator dot (= (end-offset primary)
-						(start-offset separator)))
-			      (secondary simple-number (= (end-offset
+			      (separator dot (= (drei-syntax:end-offset primary)
+						(drei-syntax:start-offset separator)))
+			      (secondary simple-number (= (drei-syntax:end-offset
 							   separator)
-							  (start-offset secondary))))
+							  (drei-syntax:start-offset secondary))))
 			  :primary primary :separator separator
 			  :secondary secondary))
 
@@ -475,9 +475,9 @@
 (add-cl-rule (complex-number -> ((start paren-open)
 				 (realpart real-number)
 				 (imagpart real-number (/=
-							  (end-offset
+							  (drei-syntax:end-offset
 							   realpart)
-							  (start-offset imagpart)))
+							  (drei-syntax:start-offset imagpart)))
 				 (end paren-close))
 			     :start start :realpart realpart :imagpart
 			     imagpart :end end))
@@ -485,9 +485,9 @@
 (add-cl-rule (complex-number -> ((start paren-open)
 				 (realpart simple-number)
 				 (imagpart simple-number (/=
-							  (end-offset
+							  (drei-syntax:end-offset
 							   realpart)
-							  (start-offset imagpart)))
+							  (drei-syntax:start-offset imagpart)))
 				 (end paren-close))
 			     :start start :realpart realpart :imagpart
 			     imagpart :end end))
@@ -507,10 +507,10 @@
 (add-cl-rule (complex-expr -> ((start hex) 
 			       (header default-item (and (default-item-is
 							     header #\c)
-							 (= (end-offset start)
-							    (start-offset header))))
-			       (item complex-number (= (end-offset header)
-						       (start-offset item))))
+							 (= (drei-syntax:end-offset start)
+							    (drei-syntax:start-offset header))))
+			       (item complex-number (= (drei-syntax:end-offset header)
+						       (drei-syntax:start-offset item))))
 			   :start start :header header :item
 			   item))
 
@@ -542,8 +542,8 @@
 (add-cl-rule (pathname-expr -> ((start hex)
 				(item default-item (and (string-equal
 							 (item-head item) #\p)
-							(= (end-offset start)
-							   (start-offset item)))))
+							(= (drei-syntax:end-offset start)
+							   (drei-syntax:start-offset item)))))
 			    :start start :item item))
 
 (defmethod display-parse-tree ((entity pathname-expr) (syntax cl-syntax) pane)
@@ -560,19 +560,19 @@
    (item :initarg :item)))
 
 (add-cl-rule (char-item -> ((start hex)
-			    (separator backslash (= (end-offset start)    
-						    (start-offset separator))) 
-			    (item cl-lexeme (and (= (end-offset separator)
-						    (start-offset item))
-						 (= (end-offset item)
-						    (1+ (start-offset item)))))) 
+			    (separator backslash (= (drei-syntax:end-offset start)    
+						    (drei-syntax:start-offset separator))) 
+			    (item cl-lexeme (and (= (drei-syntax:end-offset separator)
+						    (drei-syntax:start-offset item))
+						 (= (drei-syntax:end-offset item)
+						    (1+ (drei-syntax:start-offset item)))))) 
 			:start start :separator separator :item item))
 
 (add-cl-rule (char-item -> ((start hex)
-			    (separator backslash (= (end-offset start)    
-						    (start-offset separator))) 
-			    (item default-item (and (= (end-offset separator)
-						       (start-offset item))
+			    (separator backslash (= (drei-syntax:end-offset start)    
+						    (drei-syntax:start-offset separator))) 
+			    (item default-item (and (= (drei-syntax:end-offset separator)
+						       (drei-syntax:start-offset item))
 						    (member item
 							    '("Newline" "Tab" "Space") :test #'default-item-is))))
 			:start start :separator separator :item item))
@@ -627,7 +627,7 @@
 (defclass read-time-point-attr (read-time-attr) ()) 
  
 (add-cl-rule (read-time-point-attr -> ((read-car dot)
-				       (read-expr identifier (= (end-offset read-car) (start-offset read-expr))))
+				       (read-expr identifier (= (drei-syntax:end-offset read-car) (drei-syntax:start-offset read-expr))))
 				   :read-car read-car :read-expr read-expr))
 
 
@@ -639,7 +639,7 @@
 
 
 (add-cl-rule (read-time-evaluation -> ((start hex) 
-				       (item read-time-point-attr (= (end-offset start) (start-offset item))))
+				       (item read-time-point-attr (= (drei-syntax:end-offset start) (drei-syntax:start-offset item))))
 				   :start start :item item))
 
 (defmethod display-parse-tree ((entity read-time-evaluation) (syntax cl-syntax) pane)
@@ -669,7 +669,7 @@
 (defclass read-time-plus-attr (read-time-attr) ()) 
 
 (add-cl-rule (read-time-plus-attr -> ((read-car plus-symbol)
-				      (read-expr read-time-expr (= (end-offset read-car) (start-offset read-expr))))
+				      (read-expr read-time-expr (= (drei-syntax:end-offset read-car) (drei-syntax:start-offset read-expr))))
 				  :read-car read-car :read-expr read-expr))
 
 
@@ -678,7 +678,7 @@
 (defclass read-time-minus-attr (read-time-attr) ()) 
 
 (add-cl-rule (read-time-minus-attr -> ((read-car minus-symbol)
-				       (read-expr read-time-expr (= (end-offset read-car) (start-offset read-expr))))
+				       (read-expr read-time-expr (= (drei-syntax:end-offset read-car) (drei-syntax:start-offset read-expr))))
 				   :read-car read-car :read-expr read-expr))
 
 
@@ -704,8 +704,8 @@
   
 
 (add-cl-rule (read-time-conditional-plus -> ((start hex) 
-					     (test read-time-plus-attr (= (end-offset start) (start-offset test)))
-					     (expr cl-terminal (/= (end-offset test) (start-offset expr))))
+					     (test read-time-plus-attr (= (drei-syntax:end-offset start) (drei-syntax:start-offset test)))
+					     (expr cl-terminal (/= (drei-syntax:end-offset test) (drei-syntax:start-offset expr))))
 					 :start start :test test :expr expr))
 
 
@@ -714,8 +714,8 @@
 (defclass read-time-conditional-minus (read-time-conditional) ())
 
 (add-cl-rule (read-time-conditional-minus -> ((start hex) 
-					      (test read-time-minus-attr (= (end-offset start) (start-offset test)))
-					      (expr cl-terminal (/= (end-offset test) (start-offset expr))))
+					      (test read-time-minus-attr (= (drei-syntax:end-offset start) (drei-syntax:start-offset test)))
+					      (expr cl-terminal (/= (drei-syntax:end-offset test) (drei-syntax:start-offset expr))))
 					  :start start :test test :expr expr))
 
 ;;; Avoid forward definition
@@ -731,8 +731,8 @@
    (quoted-expr :initarg :quoted-expr)))
 
 (add-cl-rule (fun-expr -> ((start hex)
-			   (quoted-expr quoted-expr (= (end-offset start)
-						       (start-offset quoted-expr))))
+			   (quoted-expr quoted-expr (= (drei-syntax:end-offset start)
+						       (drei-syntax:start-offset quoted-expr))))
 		       :start start :quoted-expr quoted-expr))
 
 (defmethod display-parse-tree ((entity fun-expr) (syntax cl-syntax) pane)
@@ -749,8 +749,8 @@
    (list-expr :initarg :list-expr)))
 
 (add-cl-rule (vect-expr -> ((start hex)
-			    (list-expr list-expr (= (end-offset start)
-						    (start-offset list-expr))))
+			    (list-expr list-expr (= (drei-syntax:end-offset start)
+						    (drei-syntax:start-offset list-expr))))
 			:start start :list-expr list-expr))
 
 (defmethod display-parse-tree ((entity vect-expr) (syntax cl-syntax) pane)
@@ -766,8 +766,8 @@
 
 (add-cl-rule (bitvect-expr -> ((start hex)
 			       (item default-item
-				     (and (= (end-offset start)
-					     (start-offset item))
+				     (and (= (drei-syntax:end-offset start)
+					     (drei-syntax:start-offset item))
 					  (string-equal (item-head item) #\*)
 					  (radix-is (item-tail
 						     item) 2))))
@@ -810,22 +810,22 @@
       (symbol-name :initarg :symbol-name)))
 
 (add-cl-rule (qualified-symbol -> ((package-name default-item)
-                                   (colon1 colon (= (end-offset package-name)
-                                                    (start-offset colon1)))
-                                   (colon2 colon (= (end-offset colon1)
-                                                    (start-offset colon2)))
-                                   (symbol-name default-item (= (end-offset colon2)
-                                                                (start-offset symbol-name))))
+                                   (colon1 colon (= (drei-syntax:end-offset package-name)
+                                                    (drei-syntax:start-offset colon1)))
+                                   (colon2 colon (= (drei-syntax:end-offset colon1)
+                                                    (drei-syntax:start-offset colon2)))
+                                   (symbol-name default-item (= (drei-syntax:end-offset colon2)
+                                                                (drei-syntax:start-offset symbol-name))))
                              :package-name package-name
                              :colon1 colon1
                              :colon2 colon2
                              :symbol-name symbol-name))
 
 (add-cl-rule (qualified-exported-symbol -> ((package-name default-item)
-                                            (colon colon (= (end-offset package-name)
-                                                            (start-offset colon)))
-                                            (symbol-name default-item (= (end-offset colon)
-                                                                         (start-offset symbol-name))))
+                                            (colon colon (= (drei-syntax:end-offset package-name)
+                                                            (drei-syntax:start-offset colon)))
+                                            (symbol-name default-item (= (drei-syntax:end-offset colon)
+                                                                         (drei-syntax:start-offset symbol-name))))
                                         :package-name package-name
                                         :colon colon
                                         :symbol-name symbol-name))
@@ -869,8 +869,8 @@
 
 (add-cl-rule (lambda-list-keyword -> ((start ampersand)
                                       (item default-item (and
-                                                          (= (end-offset start)
-                                                             (start-offset item))
+                                                          (= (drei-syntax:end-offset start)
+                                                             (drei-syntax:start-offset item))
                                                           (member item
                                                                   '( ;; ordinary LLs
                                                                     "optional" "rest" "key" "aux" "allow-other-keys"
@@ -916,8 +916,8 @@
    (end :initarg :end)))
 
 (add-cl-rule (unquoted-item -> ((start comma)
-				(end at (= (end-offset start)
-					   (start-offset end))))
+				(end at (= (drei-syntax:end-offset start)
+					   (drei-syntax:start-offset end))))
 			    :start start :end end))
 
 (defmethod display-parse-tree ((entity unquoted-item) (syntax cl-syntax) pane)
@@ -979,16 +979,16 @@
 (defmethod initialize-instance :after ((syntax cl-syntax) &rest args)
   (declare (ignore args))
   (with-slots (parser lexer buffer) syntax
-    (setf parser (make-instance 'parser
+    (setf parser (make-instance 'drei-syntax:parser
 				:grammar *cl-grammar*
 				:target 'cl-terminals))
     (setf lexer (make-instance 'cl-lexer :buffer (buffer syntax)))
     (let ((m (drei-buffer:clone-mark (low-mark buffer) :left))
-	   (lexeme (make-instance 'start-lexeme :state (initial-state parser))))
+	   (lexeme (make-instance 'start-lexeme :state (drei-syntax:initial-state parser))))
       (setf (drei-buffer:offset m) 0)
-      (setf (start-offset lexeme) m
-	    (end-offset lexeme) 0)
-      (insert-lexeme lexer 0 lexeme))))
+      (setf (drei-syntax:start-offset lexeme) m
+	    (drei-syntax:end-offset lexeme) 0)
+      (drei-syntax:insert-lexeme lexer 0 lexeme))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -996,25 +996,25 @@
 
 (defmethod update-syntax-for-display (buffer (syntax cl-syntax) top bot)
   (with-slots (parser lexer valid-parse) syntax
-    (loop until (= valid-parse (nb-lexemes lexer))
-       while (drei-buffer:mark<= (end-offset (lexeme lexer valid-parse)) bot)
-       do (let ((current-token (lexeme lexer (1- valid-parse)))
-		(next-lexeme (lexeme lexer valid-parse)))
+    (loop until (= valid-parse (drei-syntax:nb-lexemes lexer))
+       while (drei-buffer:mark<= (drei-syntax:end-offset (drei-syntax:lexeme lexer valid-parse)) bot)
+       do (let ((current-token (drei-syntax:lexeme lexer (1- valid-parse)))
+		(next-lexeme (drei-syntax:lexeme lexer valid-parse)))
 	    (setf (slot-value next-lexeme 'state)
-		  (advance-parse parser (list next-lexeme) (slot-value current-token 'state))))
+		  (drei-syntax:advance-parse parser (list next-lexeme) (slot-value current-token 'state))))
 	 (incf valid-parse))))
 
-(defmethod inter-lexeme-object-p ((lexer cl-lexer) object)
-  (whitespacep (syntax (buffer lexer)) object))
+(defmethod drei-syntax:inter-lexeme-object-p ((lexer cl-lexer) object)
+  (drei-syntax:whitespacep (drei-syntax:syntax (buffer lexer)) object))
 
-(defmethod update-syntax (buffer (syntax cl-syntax))
+(defmethod drei-syntax:update-syntax (buffer (syntax cl-syntax))
   (with-slots (lexer valid-parse) syntax
     (let* ((low-mark (low-mark buffer))
 	   (high-mark (high-mark buffer)))
        (when (drei-buffer:mark<= low-mark high-mark)
-	 (let ((first-invalid-position (delete-invalid-lexemes lexer low-mark high-mark)))
+	 (let ((first-invalid-position (drei-syntax:delete-invalid-lexemes lexer low-mark high-mark)))
 	   (setf valid-parse first-invalid-position)
-	   (update-lex lexer first-invalid-position high-mark))))))
+	   (drei-syntax:update-lex lexer first-invalid-position high-mark))))))
 
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -1029,7 +1029,7 @@
   (let ((space-width (space-width pane))
 	(tab-width (tab-width pane)))
     (loop while (and (< start end)
-                     (whitespacep (syntax buffer)
+                     (drei-syntax:whitespacep (drei-syntax:syntax buffer)
                                   (drei-buffer:buffer-object buffer start)))
           do (ecase (drei-buffer:buffer-object buffer start)
                (#\Newline (terpri pane)
@@ -1047,7 +1047,7 @@
 
 (defmethod display-parse-tree :around ((entity cl-parse-tree) syntax pane)
   (with-slots (top bot) pane
-    (when (and (end-offset entity) (drei-buffer:mark> (end-offset entity) top))
+    (when (and (drei-syntax:end-offset entity) (drei-buffer:mark> (drei-syntax:end-offset entity) top))
       (call-next-method))))
 
 (defun color-equal (c1 c2)
@@ -1079,30 +1079,30 @@
 		       (setf ink (medium-ink (sheet-medium pane))
 			     face (text-style-face (medium-text-style (sheet-medium pane))))
 		       (present (coerce (drei-buffer:buffer-sequence (buffer syntax)
-							 (start-offset entity)
-							 (end-offset entity))
+							 (drei-syntax:start-offset entity)
+							 (drei-syntax:end-offset entity))
 					'string)
 				'string
 				:stream pane)))))
 
 (defmethod display-parse-tree :before ((entity cl-entry) (syntax cl-syntax) pane)
-  (handle-whitespace pane (buffer pane) *white-space-start* (start-offset entity))
-  (setf *white-space-start* (end-offset entity)))
+  (handle-whitespace pane (buffer pane) *white-space-start* (drei-syntax:start-offset entity))
+  (setf *white-space-start* (drei-syntax:end-offset entity)))
 
 (defgeneric display-parse-stack (symbol stack syntax pane))
 
 (defmethod display-parse-stack (symbol stack (syntax cl-syntax) pane)
-  (let ((next (parse-stack-next stack)))
+  (let ((next (drei-syntax:parse-stack-next stack)))
     (unless (null next)
-      (display-parse-stack (parse-stack-symbol next) next syntax pane))
-    (loop for parse-tree in (reverse (parse-stack-parse-trees stack))
+      (display-parse-stack (drei-syntax:parse-stack-symbol next) next syntax pane))
+    (loop for parse-tree in (reverse (drei-syntax:parse-stack-parse-trees stack))
        do (display-parse-tree parse-tree syntax pane)))) 
 
 (defun display-parse-state (state syntax pane)
-  (let ((top (parse-stack-top state)))
+  (let ((top (drei-syntax:parse-stack-top state)))
     (if (not (null top))
-	(display-parse-stack (parse-stack-symbol top) top syntax pane)
-	(display-parse-tree (target-parse-tree state) syntax pane))))
+	(display-parse-stack (drei-syntax:parse-stack-symbol top) top syntax pane)
+	(display-parse-tree (drei-syntax:target-parse-tree state) syntax pane))))
 
 
 (defmethod redisplay-pane-with-syntax ((pane drei-pane) (syntax cl-syntax) current-p)
@@ -1111,34 +1111,34 @@
 	  *current-line* 0
 	  (aref *cursor-positions* 0) (stream-cursor-position pane))
     (with-slots (lexer) syntax
-      (let ((average-token-size (max (float (/ (drei-buffer:size (buffer pane)) (nb-lexemes lexer)))
+      (let ((average-token-size (max (float (/ (drei-buffer:size (buffer pane)) (drei-syntax:nb-lexemes lexer)))
 				     1.0)))
 	;; find the last token before bot
 	(let ((end-token-index (max (floor (/ (drei-buffer:offset bot) average-token-size)) 1)))
 	  ;; go back to a token before bot
-	  (loop until (drei-buffer:mark<= (end-offset (lexeme lexer (1- end-token-index))) bot)
+	  (loop until (drei-buffer:mark<= (drei-syntax:end-offset (drei-syntax:lexeme lexer (1- end-token-index))) bot)
 	     do (decf end-token-index))
 	  ;; go forward to the last token before bot
-	  (loop until (or (= end-token-index (nb-lexemes lexer))
-			  (drei-buffer:mark> (start-offset (lexeme lexer end-token-index)) bot))
+	  (loop until (or (= end-token-index (drei-syntax:nb-lexemes lexer))
+			  (drei-buffer:mark> (drei-syntax:start-offset (drei-syntax:lexeme lexer end-token-index)) bot))
 	     do (incf end-token-index))
 	  (let ((start-token-index end-token-index))
 	    ;; go back to the first token after top, or until the previous token
 	    ;; contains a valid parser state
-	    (loop until (or (drei-buffer:mark<= (end-offset (lexeme lexer (1- start-token-index))) top)
-			    (not (parse-state-empty-p 
-				  (slot-value (lexeme lexer (1- start-token-index)) 'state))))
+	    (loop until (or (drei-buffer:mark<= (drei-syntax:end-offset (drei-syntax:lexeme lexer (1- start-token-index))) top)
+			    (not (drei-syntax:parse-state-empty-p 
+				  (slot-value (drei-syntax:lexeme lexer (1- start-token-index)) 'state))))
 		 do (decf start-token-index))
 	    (let ((*white-space-start* (drei-buffer:offset top)))
 	      ;; display the parse tree if any
-	      (unless (parse-state-empty-p (slot-value (lexeme lexer (1- start-token-index)) 'state))
-		(display-parse-state (slot-value (lexeme lexer (1- start-token-index)) 'state)
+	      (unless (drei-syntax:parse-state-empty-p (slot-value (drei-syntax:lexeme lexer (1- start-token-index)) 'state))
+		(display-parse-state (slot-value (drei-syntax:lexeme lexer (1- start-token-index)) 'state)
 				     syntax
 				     pane))
 	      ;; display the lexemes
 	      (with-drawing-options (pane :ink (make-rgb-color 0.7 0.7 0.7))
 		(loop while (< start-token-index end-token-index)
-		   do (let ((token (lexeme lexer start-token-index)))
+		   do (let ((token (drei-syntax:lexeme lexer start-token-index)))
 			(display-parse-tree token syntax pane))
 		     (incf start-token-index))))))))
     (when (region-visible-p pane) (display-region pane syntax))

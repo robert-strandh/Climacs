@@ -23,12 +23,12 @@
 
 (in-package #:climacs-prolog-syntax)
 
-(defclass prolog-parse-tree (parse-tree)
+(defclass prolog-parse-tree (drei-syntax:parse-tree)
   ())
 
-(define-syntax-command-table prolog-table :errorp nil)
+(drei-syntax:define-syntax-command-table prolog-table :errorp nil)
 
-(define-syntax prolog-syntax (fundamental-syntax)
+(drei-syntax:define-syntax prolog-syntax (fundamental-syntax)
   ((lexer :reader lexer)
    (valid-parse :initform 1)
    (parser)
@@ -37,7 +37,7 @@
   (:pathname-types "pl")
   (:command-table prolog-table))
 
-(defparameter *prolog-grammar* (grammar))
+(defparameter *prolog-grammar* (drei-syntax:grammar))
 
 ;;; *THIS-SYNTAX* is bound around calls to the parser, so that the
 ;;; parser rules can update the operator directive table.  Possibly
@@ -46,22 +46,22 @@
 (defvar *this-syntax*)
 
 (defmacro define-prolog-rule ((&rest rule) &body body)
-  `(add-rule (grammar-rule (,@rule ,@body)) *prolog-grammar*))
+  `(drei-syntax:add-rule (drei-syntax:grammar-rule (,@rule ,@body)) *prolog-grammar*))
 
 (defmethod initialize-instance :after ((syntax prolog-syntax) &rest args)
   (declare (ignore args))
   (let ((buffer (buffer syntax)))
     (with-slots (parser lexer) syntax
-      (setf parser (make-instance 'parser
+      (setf parser (make-instance 'drei-syntax:parser
                                   :grammar *prolog-grammar*
                                   :target 'prolog-text))
       (setf lexer (make-instance 'prolog-lexer :buffer buffer :syntax syntax))
       (let ((m (drei-buffer:make-buffer-mark buffer 0 :left))
-            (lexeme (make-instance 'start-lexeme :state (initial-state parser))))
+            (lexeme (make-instance 'start-lexeme :state (drei-syntax:initial-state parser))))
         (setf (drei-buffer:offset m) 0)
-        (setf (start-offset lexeme) m
-              (end-offset lexeme) 0)
-        (insert-lexeme lexer 0 lexeme)))))
+        (setf (drei-syntax:start-offset lexeme) m
+              (drei-syntax:end-offset lexeme) 0)
+        (drei-syntax:insert-lexeme lexer 0 lexeme)))))
 
 ;;; grammar
 
@@ -159,11 +159,11 @@
 (define-prolog-rule (layout-text -> ())
   (make-instance 'layout-text :cont nil))
 
-(defclass prolog-lexer (incremental-lexer)
+(defclass prolog-lexer (drei-syntax:incremental-lexer)
   ((valid-lex :initarg :valid-lex :initform 1)
    (syntax :initarg :syntax :reader syntax)))
 
-(defmethod next-lexeme ((lexer prolog-lexer) scan)
+(defmethod drei-syntax:next-lexeme ((lexer prolog-lexer) scan)
   (let ((string (make-array 0 :element-type 'character
 			    :fill-pointer 0 :adjustable t)))
     (flet ((fo ()
@@ -308,7 +308,7 @@
 	       (t
 		(cond
 		  ((and (string= string ".") 
-                        (or (whitespacep (syntax lexer)
+                        (or (drei-syntax:whitespacep (drei-syntax:syntax lexer)
                                          (drei-buffer:object-after scan))
                             (eql (drei-buffer:object-after scan) #\%)))
 		   (return (make-instance 'end-lexeme)))
@@ -379,7 +379,7 @@
              (when (or (drei-buffer:end-of-buffer-p scan)
                        (let ((object (drei-buffer:object-after scan)))
                          (or (eql object #\%)
-                             (whitespacep (syntax lexer)
+                             (drei-syntax:whitespacep (drei-syntax:syntax lexer)
                                           object))))
                (bo)
                (return (make-instance 'integer-lexeme)))
@@ -806,8 +806,8 @@
 	       (exp (arg-list-nth 1 a))
 	       (term (term exp)))
 	  (let ((string (coerce (drei-buffer:buffer-sequence (buffer term)
-						 (start-offset term)
-						 (end-offset term))
+						 (drei-syntax:start-offset term)
+						 (drei-syntax:end-offset term))
 				'string)))
 	    (cdr (assoc string '(("fx" . :fx) ("fy" . :fy)
 				 ("xfx" . :xfx) ("xfy" . :xfy) ("yfx" . :yfx)
@@ -1081,7 +1081,7 @@
 (defun find-defined-operator (name specifiers)
   (let ((operator-directives (operator-directives *this-syntax*)))
     (dolist (d operator-directives)
-      (when (> (start-offset name) (end-offset d))
+      (when (> (drei-syntax:start-offset name) (drei-syntax:end-offset d))
 	(when (string= (canonical-name name) (op/3-directive-operator d))
 	  (when (member (op/3-directive-specifier d) specifiers)
 	    (return (make-opspec :name (op/3-directive-operator d)
@@ -1096,8 +1096,8 @@
   (check-type thing prolog-lexeme)
   (coerce
    (drei-buffer:buffer-sequence (buffer thing)
-                    (start-offset thing)
-                    (end-offset thing))
+                    (drei-syntax:start-offset thing)
+                    (drei-syntax:end-offset thing))
    'string))
 
 (defun numeric-constant-p (thing)
@@ -1113,7 +1113,7 @@
 (defun numeric-constant-value (thing)
   (parse-integer
    (coerce
-    (drei-buffer:buffer-sequence (buffer thing) (start-offset thing) (end-offset thing))
+    (drei-buffer:buffer-sequence (buffer thing) (drei-syntax:start-offset thing) (drei-syntax:end-offset thing))
     'string)))
 
 (defun first-lexeme (thing)
@@ -1122,17 +1122,17 @@
   (let* ((syntax *this-syntax*)
          (lexer (slot-value syntax 'lexer)))
     (do ((i 0 (+ i 1)))
-        ((= i (nb-lexemes lexer)) (error "foo"))
-      (let ((lexeme (lexeme lexer i)))
-        (when (= (start-offset thing) (start-offset lexeme))
+        ((= i (drei-syntax:nb-lexemes lexer)) (error "foo"))
+      (let ((lexeme (drei-syntax:lexeme lexer i)))
+        (when (= (drei-syntax:start-offset thing) (drei-syntax:start-offset lexeme))
           (return lexeme))))))
 
 ;;; update syntax
 
-(defmethod inter-lexeme-object-p ((lexer prolog-lexer) object)
+(defmethod drei-syntax:inter-lexeme-object-p ((lexer prolog-lexer) object)
   (member object '(#\Space #\Newline #\Tab)))
 
-(defmethod update-syntax esa-utils:values-max-min ((syntax prolog-syntax) prefix-size suffix-size &optional begin end)
+(defmethod drei-syntax:update-syntax esa-utils:values-max-min ((syntax prolog-syntax) prefix-size suffix-size &optional begin end)
   (declare (ignore begin))
   ;; FIXME: this isn't quite right; it's possible that an edit has
   ;; occurred out of view, destroying our parse-up-to-end-lexeme
@@ -1140,7 +1140,7 @@
   ;; there's something weird in views.lisp?  Dunno.
   #+nil
   (when (< end prefix-size)
-    (return-from update-syntax (values 0 prefix-size)))
+    (return-from drei-syntax:update-syntax (values 0 prefix-size)))
   (with-slots (lexer valid-parse) syntax
     (let* ((low-mark (drei-buffer:make-buffer-mark (buffer syntax) prefix-size :left))
            (high-mark (drei-buffer:make-buffer-mark
@@ -1154,7 +1154,7 @@
 		(end (nb-elements drei-syntax::lexemes)))
 	    (loop while (< start end)
 		  do (let ((middle (floor (+ start end) 2)))
-		       (if (drei-buffer:mark< (end-offset (element* drei-syntax::lexemes middle))
+		       (if (drei-buffer:mark< (drei-syntax:end-offset (element* drei-syntax::lexemes middle))
 				  low-mark)
 			   (setf start (1+ middle))
 			   (setf end middle))))
@@ -1165,7 +1165,7 @@
 	(with-slots (operator-directives) syntax
 	  (do ((directives operator-directives (cdr directives)))
 	      ((null directives) (setf operator-directives nil))
-	    (when (< (end-offset (car directives))
+	    (when (< (drei-syntax:end-offset (car directives))
 		     (drei-buffer:offset low-mark))
 	      (setf operator-directives directives)
 	      (return nil)))))))
@@ -1175,32 +1175,32 @@
       (let ((scan (drei-buffer:make-buffer-mark (buffer syntax) prefix-size :left))
 	    (high-mark (drei-buffer:make-buffer-mark (buffer syntax) (- (drei-buffer:size (buffer syntax)) suffix-size) :left)))
         (setf (drei-buffer:offset scan)
-              (end-offset (lexeme lexer (1- valid-lex))))
+              (drei-syntax:end-offset (drei-syntax:lexeme lexer (1- valid-lex))))
 	;; this magic belongs in a superclass' method.  (It's not the
 	;; same as HTML/Common Lisp relexing, though)
         (loop named relex
-	      do (skip-inter-lexeme-objects lexer scan)
+	      do (drei-syntax:skip-inter-lexeme-objects lexer scan)
               until (drei-buffer:end-of-buffer-p scan)
-	      until (and (<= end (start-offset (lexeme lexer (1- valid-lex))))
-			 (typep (lexeme lexer (1- valid-lex)) 'end-lexeme))
+	      until (and (<= end (drei-syntax:start-offset (drei-syntax:lexeme lexer (1- valid-lex))))
+			 (typep (drei-syntax:lexeme lexer (1- valid-lex)) 'end-lexeme))
 	      do (when (drei-buffer:mark> scan high-mark)
 		   (do ()
-		       ((= (nb-lexemes lexer) valid-lex))
-		     (let ((l (lexeme lexer valid-lex)))
+		       ((= (drei-syntax:nb-lexemes lexer) valid-lex))
+		     (let ((l (drei-syntax:lexeme lexer valid-lex)))
 		       (cond
-			 ((drei-buffer:mark< scan (start-offset l))
+			 ((drei-buffer:mark< scan (drei-syntax:start-offset l))
 			  (return nil))
-			 ((drei-buffer:mark= scan (start-offset l))
-			  (setf valid-lex (nb-lexemes lexer))
+			 ((drei-buffer:mark= scan (drei-syntax:start-offset l))
+			  (setf valid-lex (drei-syntax:nb-lexemes lexer))
 			  (return-from relex))
 			 (t
 			  (delete* drei-syntax::lexemes valid-lex))))))
 	      do (let* ((start-mark (drei-buffer:clone-mark scan))
-			(lexeme (next-lexeme lexer scan))
+			(drei-syntax:lexeme (drei-syntax:next-lexeme lexer scan))
 			(size (- (drei-buffer:offset scan) (drei-buffer:offset start-mark))))
 		   (setf (slot-value lexeme 'drei-syntax::start-mark) start-mark
 			 (slot-value lexeme 'drei-syntax::size) size)
-		   (insert-lexeme lexer valid-lex lexeme)
+		   (drei-syntax:insert-lexeme lexer valid-lex lexeme)
 		   (incf valid-lex)))
 	;; remove lexemes which we know to be invalid.
 	;;
@@ -1209,7 +1209,7 @@
 	;; visible region, but possibly elsewhere instead; however,
 	;; for now, simply assume that the VALID-LEX from above is
 	;; definitive.
-	(loop until (= (nb-lexemes lexer) valid-lex)
+	(loop until (= (drei-syntax:nb-lexemes lexer) valid-lex)
 	      do (delete* drei-syntax::lexemes valid-lex)))
       ;; parse up to the limit of validity imposed by the lexer, or
       ;; the bottom of the visible area, whichever comes sooner
@@ -1220,17 +1220,17 @@
       ;; thing) can return a delegating buffer.
       (let ((*this-syntax* syntax))
 	(loop until (= valid-parse valid-lex)
-	      until (and (<= end (start-offset (lexeme lexer (1- valid-parse))))
-			 (typep (lexeme lexer (1- valid-parse)) 'end-lexeme))
-	      do (let ((current-token (lexeme lexer (1- valid-parse)))
-		       (next-lexeme (lexeme lexer valid-parse)))
+	      until (and (<= end (drei-syntax:start-offset (drei-syntax:lexeme lexer (1- valid-parse))))
+			 (typep (drei-syntax:lexeme lexer (1- valid-parse)) 'end-lexeme))
+	      do (let ((current-token (drei-syntax:lexeme lexer (1- valid-parse)))
+		       (next-lexeme (drei-syntax:lexeme lexer valid-parse)))
 		   (setf (slot-value next-lexeme 'state)
-			 (advance-parse parser (list next-lexeme) 
+			 (drei-syntax:advance-parse parser (list next-lexeme) 
 					(slot-value current-token 'state)))
 		   (incf valid-parse))))
       (let ((scan (drei-buffer:make-buffer-mark (buffer syntax) 0 :left)))
-	(setf (drei-buffer:offset scan) (end-offset (lexeme lexer (1- valid-parse))))
-	(skip-inter-lexeme-objects lexer scan)
+	(setf (drei-buffer:offset scan) (drei-syntax:end-offset (drei-syntax:lexeme lexer (1- valid-parse))))
+	(drei-syntax:skip-inter-lexeme-objects lexer scan)
 	(values 0 (drei-buffer:offset scan))))))
 
 ;;; display
@@ -1248,13 +1248,13 @@
 		 :lexeme-index lexeme-index :offset offset))
 
 (defun %lexeme-index-before-offset (syntax offset)
-  (update-parse syntax 0 offset)
+  (drei-syntax:update-parse syntax 0 offset)
   (with-slots (drei-syntax::lexemes valid-lex)
       (lexer syntax)
     ;; FIXME: speed this up.
     (do* ((i (1- valid-lex) (1- i))
 	  (lexeme #1=(element* drei-syntax::lexemes i) #1#)
-	  (start #2=(start-offset lexeme) #2#))
+	  (start #2=(drei-syntax:start-offset lexeme) #2#))
 	 ((<= start offset) i))))
 
 (defun %drawing-options-for-lexeme-index (syntax index)
@@ -1278,25 +1278,25 @@
     (let* ((index (lexeme-index pump-state))
 	   (offset (pump-state-offset pump-state))
 	   (line (line-containing-offset view offset))
-           (line-start-offset (start-offset line))
-           (line-end-offset (end-offset line))
+           (line-drei-syntax:start-offset (drei-syntax:start-offset line))
+           (line-end-offset (drei-syntax:end-offset line))
 	   (lexeme (and index (element* drei-syntax::lexemes index))))
       (cond
 	((or 
 	  ;; in theory, if INDEX is null
 	  (null index)
           ;; or if we're actually past the lexeme
-          (> line-start-offset (end-offset lexeme))
+          (> line-drei-syntax:start-offset (drei-syntax:end-offset lexeme))
 	  ;; or somehow before the lexeme 
-	  (< line-end-offset (start-offset lexeme)))
+	  (< line-end-offset (drei-syntax:start-offset lexeme)))
          ;; then we have blank space
-	 (setf (stroke-start-offset stroke) offset
+	 (setf (stroke-drei-syntax:start-offset stroke) offset
 	       (stroke-end-offset stroke) line-end-offset
 	       (stroke-drawing-options stroke) +default-drawing-options+)
 	 (setf (pump-state-offset pump-state) (1+ line-end-offset))
 	 pump-state)
-	((< line-end-offset (end-offset lexeme))
-	 (setf (stroke-start-offset stroke) offset
+	((< line-end-offset (drei-syntax:end-offset lexeme))
+	 (setf (stroke-drei-syntax:start-offset stroke) offset
 	       (stroke-end-offset stroke) line-end-offset
 	       (stroke-drawing-options stroke) (drawing-options pump-state))
 	 (setf (pump-state-offset pump-state) (1+ line-end-offset))
@@ -1308,14 +1308,14 @@
 	 (when (= (1+ index) (slot-value (lexer syntax) 'valid-lex))
 	   (let ((next (min (drei-buffer:size (buffer syntax))
 			    (1+ (drei::prefix-size view)))))
-	     (update-parse syntax 0 next)))
+	     (drei-syntax:update-parse syntax 0 next)))
 	 (cond
-	   ((< (1+ index) (nb-lexemes (lexer syntax)))
+	   ((< (1+ index) (drei-syntax:nb-lexemes (lexer syntax)))
 	    (let* ((new-index (1+ index))
-		   (new-lexeme (lexeme (lexer syntax) new-index))
-		   (end-offset (min (start-offset new-lexeme) 
+		   (new-lexeme (drei-syntax:lexeme (lexer syntax) new-index))
+		   (end-offset (min (drei-syntax:start-offset new-lexeme) 
 				    line-end-offset)))
-	      (setf (stroke-start-offset stroke) offset
+	      (setf (stroke-drei-syntax:start-offset stroke) offset
 		    (stroke-end-offset stroke) end-offset
 		    (stroke-drawing-options stroke) (drawing-options pump-state))
 	      (setf (pump-state-offset pump-state) (if (= end-offset line-end-offset)

@@ -22,7 +22,7 @@
 
 (in-package :climacs-html-syntax)
 
-(define-syntax html-syntax (fundamental-syntax)
+(drei-syntax:define-syntax html-syntax (fundamental-syntax)
   ((lexer :reader lexer)
    (valid-parse :initform 1)
    (parser))
@@ -33,7 +33,7 @@
 ;;;
 ;;; grammar classes
 
-(defclass html-parse-tree (parse-tree)
+(defclass html-parse-tree (drei-syntax:parse-tree)
   ((badness :initform 0 :initarg :badness :reader badness)))
 
 (defmethod parse-tree-better ((t1 html-parse-tree) (t2 html-parse-tree))
@@ -90,9 +90,9 @@
 (defclass word (html-lexeme) ())
 (defclass delimiter (html-lexeme) ())
 
-(defclass html-lexer (incremental-lexer) ())     
+(defclass html-lexer (drei-syntax:incremental-lexer) ())     
 
-(defmethod next-lexeme ((lexer html-lexer) scan)
+(defmethod drei-syntax:next-lexeme ((lexer html-lexer) scan)
   (flet ((fo () (drei-buffer:forward-object scan)))
     (let ((object (drei-buffer:object-after scan)))
       (case object
@@ -114,14 +114,14 @@
 ;;;
 ;;; parser
 
-(defparameter *html-grammar* (grammar))
+(defparameter *html-grammar* (drei-syntax:grammar))
 
 (defmacro add-html-rule (rule &key predict-test)
-  `(add-rule (grammar-rule ,rule :predict-test ,predict-test)
+  `(drei-syntax:add-rule (drei-syntax:grammar-rule ,rule :predict-test ,predict-test)
 	     *html-grammar*))
 
 (defun word-is (word string)
-  (string-equal (coerce (drei-buffer:buffer-sequence (buffer word) (start-offset word) (end-offset word)) 'string)
+  (string-equal (coerce (drei-buffer:buffer-sequence (buffer word) (drei-syntax:start-offset word) (drei-syntax:end-offset word)) 'string)
 		string))
 
 (defmacro define-start-tag (name string)
@@ -130,9 +130,9 @@
 
      (add-html-rule
       (,name -> (start-tag-start
-		 (word (and (= (end-offset start-tag-start) (start-offset word))
+		 (word (and (= (drei-syntax:end-offset start-tag-start) (drei-syntax:start-offset word))
 			    (word-is word ,string)))
-		 (tag-end (= (end-offset word) (start-offset tag-end))))
+		 (tag-end (= (drei-syntax:end-offset word) (drei-syntax:start-offset tag-end))))
 	     :start start-tag-start :name word :end tag-end))))
 
 (defmacro define-end-tag (name string)
@@ -141,9 +141,9 @@
 
      (add-html-rule
       (,name -> (end-tag-start
-		 (word (and (= (end-offset end-tag-start) (start-offset word))
+		 (word (and (= (drei-syntax:end-offset end-tag-start) (drei-syntax:start-offset word))
 			    (word-is word ,string)))
-		 (tag-end (= (end-offset word) (start-offset tag-end))))
+		 (tag-end (= (drei-syntax:end-offset word) (drei-syntax:start-offset tag-end))))
 	     :start end-tag-start :name word :end tag-end)
       :predict-test (lambda (token)
 		      (typep token 'end-tag-start)))))
@@ -268,10 +268,10 @@
   ((lang :initarg :lang)))
 
 (add-html-rule (lang-attr -> ((name word (word-is name "lang"))
-			      (equals delimiter (and (= (end-offset name) (start-offset equals))
+			      (equals delimiter (and (= (drei-syntax:end-offset name) (drei-syntax:start-offset equals))
 						     (word-is equals "=")))
-			      (lang word (and (= (end-offset equals) (start-offset lang))
-					      (= (- (end-offset lang) (start-offset lang))
+			      (lang word (and (= (drei-syntax:end-offset equals) (drei-syntax:start-offset lang))
+					      (= (- (drei-syntax:end-offset lang) (drei-syntax:start-offset lang))
 						 2))))
 			  :name name :equals equals :lang lang))
 
@@ -286,9 +286,9 @@
   ((dir :initarg :dir)))
 
 (add-html-rule (dir-attr -> ((name word (word-is name "dir"))
-			     (equals delimiter (and (= (end-offset name) (start-offset equals))
+			     (equals delimiter (and (= (drei-syntax:end-offset name) (drei-syntax:start-offset equals))
 						    (word-is equals "=")))
-			     (dir word (and (= (end-offset equals) (start-offset dir))
+			     (dir word (and (= (drei-syntax:end-offset equals) (drei-syntax:start-offset dir))
 					    (or (word-is dir "rtl")
 						(word-is dir "ltr")))))
 			 :name name :equals equals :dir dir))
@@ -305,7 +305,7 @@
   ((href :initarg :href)))
 
 (add-html-rule (href-attr -> ((name word (word-is name "href"))
-			      (equals delimiter (and (= (end-offset name) (start-offset equals))
+			      (equals delimiter (and (= (drei-syntax:end-offset name) (drei-syntax:start-offset equals))
 						     (word-is equals "=")))
 			      (href html-string))
 			  :name name :equals equals :href href))
@@ -437,7 +437,7 @@
 (defclass <a> (html-start-tag) ())
 
 (add-html-rule (<a> -> (start-tag-start
-			(word (and (= (end-offset start-tag-start) (start-offset word))
+			(word (and (= (drei-syntax:end-offset start-tag-start) (drei-syntax:start-offset word))
 				   (word-is word "a")))
 			<a>-attributes
 			tag-end)
@@ -480,7 +480,7 @@
 (defclass <p> (html-start-tag) ())
 
 (add-html-rule (<p> -> (start-tag-start
-			(word (and (= (end-offset start-tag-start) (start-offset word))
+			(word (and (= (drei-syntax:end-offset start-tag-start) (drei-syntax:start-offset word))
 				   (word-is word "p")))
 			common-attributes
 			tag-end)
@@ -508,7 +508,7 @@
 (defclass <li> (html-start-tag) ())
 
 (add-html-rule (<li> -> (start-tag-start
-			 (word (and (= (end-offset start-tag-start) (start-offset word))
+			 (word (and (= (drei-syntax:end-offset start-tag-start) (drei-syntax:start-offset word))
 				    (word-is word "li")))
 			 common-attributes
 			 tag-end)
@@ -542,7 +542,7 @@
 (defclass <ul> (html-start-tag) ())
 
 (add-html-rule (<ul> -> (start-tag-start
-			 (word (and (= (end-offset start-tag-start) (start-offset word))
+			 (word (and (= (drei-syntax:end-offset start-tag-start) (drei-syntax:start-offset word))
 				    (word-is word "ul")))
 			 common-attributes
 			 tag-end)
@@ -648,7 +648,7 @@
 (defclass <html> (html-start-tag) ())
 
 (add-html-rule (<html> -> (start-tag-start
-			   (word (and (= (end-offset start-tag-start) (start-offset word))
+			   (word (and (= (drei-syntax:end-offset start-tag-start) (drei-syntax:start-offset word))
 				      (word-is word "html")))
 			   <html>-attributes
 			   tag-end)
@@ -678,16 +678,16 @@
 (defmethod initialize-instance :after ((syntax html-syntax) &rest args)
   (declare (ignore args))
   (with-slots (parser lexer buffer) syntax
-     (setf parser (make-instance 'parser
+     (setf parser (make-instance 'drei-syntax:parser
 		     :grammar *html-grammar*
 		     :target 'html))
      (setf lexer (make-instance 'html-lexer :buffer (buffer syntax)))
      (let ((m (drei-buffer:clone-mark (low-mark buffer) :left))
-	   (lexeme (make-instance 'start-lexeme :state (initial-state parser))))
+	   (lexeme (make-instance 'start-lexeme :state (drei-syntax:initial-state parser))))
        (setf (drei-buffer:offset m) 0)
-       (setf (start-offset lexeme) m
-	     (end-offset lexeme) 0)
-       (insert-lexeme lexer 0 lexeme))))
+       (setf (drei-syntax:start-offset lexeme) m
+	     (drei-syntax:end-offset lexeme) 0)
+       (drei-syntax:insert-lexeme lexer 0 lexeme))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -696,25 +696,25 @@
 
 (defmethod update-syntax-for-display (buffer (syntax html-syntax) top bot)
   (with-slots (parser lexer valid-parse) syntax
-     (loop until (= valid-parse (nb-lexemes lexer))
-	   while (drei-buffer:mark<= (end-offset (lexeme lexer valid-parse)) bot)
-	   do (let ((current-token (lexeme lexer (1- valid-parse)))
-		    (next-lexeme (lexeme lexer valid-parse)))
+     (loop until (= valid-parse (drei-syntax:nb-lexemes lexer))
+	   while (drei-buffer:mark<= (drei-syntax:end-offset (drei-syntax:lexeme lexer valid-parse)) bot)
+	   do (let ((current-token (drei-syntax:lexeme lexer (1- valid-parse)))
+		    (next-lexeme (drei-syntax:lexeme lexer valid-parse)))
 		(setf (slot-value next-lexeme 'state)
-		      (advance-parse parser (list next-lexeme) (slot-value current-token 'state))))
+		      (drei-syntax:advance-parse parser (list next-lexeme) (slot-value current-token 'state))))
 	      (incf valid-parse))))
 
-(defmethod inter-lexeme-object-p ((lexer html-lexer) object)
-  (whitespacep (syntax (buffer lexer)) object))
+(defmethod drei-syntax:inter-lexeme-object-p ((lexer html-lexer) object)
+  (drei-syntax:whitespacep (drei-syntax:syntax (buffer lexer)) object))
 
-(defmethod update-syntax (buffer (syntax html-syntax))
+(defmethod drei-syntax:update-syntax (buffer (syntax html-syntax))
   (with-slots (lexer valid-parse) syntax
      (let* ((low-mark (low-mark buffer))
 	    (high-mark (high-mark buffer)))
        (when (drei-buffer:mark<= low-mark high-mark)
-	 (let ((first-invalid-position (delete-invalid-lexemes lexer low-mark high-mark)))
+	 (let ((first-invalid-position (drei-syntax:delete-invalid-lexemes lexer low-mark high-mark)))
 	   (setf valid-parse first-invalid-position)
-	   (update-lex lexer first-invalid-position high-mark))))))
+	   (drei-syntax:update-lex lexer first-invalid-position high-mark))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -729,10 +729,10 @@
   (let ((space-width (space-width pane))
         (tab-width (tab-width pane)))
     (with-sheet-medium (medium pane)
-      (with-accessors ((cursor-positions cursor-positions)) (syntax buffer)
+      (with-accessors ((cursor-positions cursor-positions)) (drei-syntax:syntax buffer)
         (loop while (< start end)
            do (case (drei-buffer:buffer-object buffer start)
-                (#\Newline (record-line-vertical-offset pane (syntax buffer) (incf *current-line*))
+                (#\Newline (record-line-vertical-offset pane (drei-syntax:syntax buffer) (incf *current-line*))
                            (terpri pane)
                            (stream-increment-cursor-position
                             pane (first (aref cursor-positions 0)) 0))
@@ -746,7 +746,7 @@
 (defmethod display-parse-tree :around ((entity html-parse-tree) (pane clim-stream-pane)
                                        (drei drei) (syntax html-syntax))
   (with-slots (top bot) drei
-     (when (and (end-offset entity) (drei-buffer:mark> (end-offset entity) top))
+     (when (and (drei-syntax:end-offset entity) (drei-buffer:mark> (drei-syntax:end-offset entity) top))
        (call-next-method))))
 
 (defmethod display-parse-tree ((entity html-lexeme) (pane clim-stream-pane)
@@ -766,8 +766,8 @@
 	 (setf ink (medium-ink (sheet-medium pane))
 	       face (text-style-face (medium-text-style (sheet-medium pane))))
 	 (present (coerce (drei-buffer:buffer-sequence (buffer syntax)
-					   (start-offset entity)
-					   (end-offset entity))
+					   (drei-syntax:start-offset entity)
+					   (drei-syntax:end-offset entity))
 			  'string)
 		  'string
 		  :stream pane)))))
@@ -779,24 +779,24 @@
 
 (defmethod display-parse-tree :before ((entity html-lexeme) (pane clim-stream-pane)
                                        (drei drei) (syntax html-syntax))
-  (handle-whitespace pane (buffer drei) *white-space-start* (start-offset entity))
-  (setf *white-space-start* (end-offset entity)))
+  (handle-whitespace pane (buffer drei) *white-space-start* (drei-syntax:start-offset entity))
+  (setf *white-space-start* (drei-syntax:end-offset entity)))
 
 (defgeneric display-parse-stack (symbol stack pane drei syntax))
 
 (defmethod display-parse-stack (symbol stack (pane clim-stream-pane)
                                 (drei drei) (syntax html-syntax))
-  (let ((next (parse-stack-next stack)))
+  (let ((next (drei-syntax:parse-stack-next stack)))
     (unless (null next)
-      (display-parse-stack (parse-stack-symbol next) next pane drei syntax))
-    (loop for parse-tree in (reverse (parse-stack-parse-trees stack))
+      (display-parse-stack (drei-syntax:parse-stack-symbol next) next pane drei syntax))
+    (loop for parse-tree in (reverse (drei-syntax:parse-stack-parse-trees stack))
 	  do (display-parse-tree parse-tree pane drei syntax))))  
 
 (defun display-parse-state (state pane drei syntax)
-  (let ((top (parse-stack-top state)))
+  (let ((top (drei-syntax:parse-stack-top state)))
     (if (not (null top))
-	(display-parse-stack (parse-stack-symbol top) top pane drei syntax)
-	(display-parse-tree (target-parse-tree state) pane drei syntax))))
+	(display-parse-stack (drei-syntax:parse-stack-symbol top) top pane drei syntax)
+	(display-parse-tree (drei-syntax:target-parse-tree state) pane drei syntax))))
 
 (defmethod display-drei-contents ((pane clim-stream-pane) (drei drei) (syntax html-syntax))
   (with-slots (top bot) drei
@@ -808,31 +808,31 @@
                                        (stream-cursor-position pane))))
     (setf *white-space-start* (drei-buffer:offset top))
     (with-slots (lexer) syntax
-      (let ((average-token-size (max (float (/ (drei-buffer:size (buffer drei)) (nb-lexemes lexer)))
+      (let ((average-token-size (max (float (/ (drei-buffer:size (buffer drei)) (drei-syntax:nb-lexemes lexer)))
                                      1.0)))
         ;; find the last token before bot
         (let ((end-token-index (max (floor (/ (drei-buffer:offset bot) average-token-size)) 1)))
           ;; go back to a token before bot
-          (loop until (drei-buffer:mark<= (end-offset (lexeme lexer (1- end-token-index))) bot)
+          (loop until (drei-buffer:mark<= (drei-syntax:end-offset (drei-syntax:lexeme lexer (1- end-token-index))) bot)
              do (decf end-token-index))
           ;; go forward to the last token before bot
-          (loop until (or (= end-token-index (nb-lexemes lexer))
-                          (drei-buffer:mark> (start-offset (lexeme lexer end-token-index)) bot))
+          (loop until (or (= end-token-index (drei-syntax:nb-lexemes lexer))
+                          (drei-buffer:mark> (drei-syntax:start-offset (drei-syntax:lexeme lexer end-token-index)) bot))
              do (incf end-token-index))
           (let ((start-token-index end-token-index))
             ;; go back to the first token after top, or until the previous token
             ;; contains a valid parser state
-            (loop until (or (drei-buffer:mark<= (end-offset (lexeme lexer (1- start-token-index))) top)
-                            (not (parse-state-empty-p 
-                                  (slot-value (lexeme lexer (1- start-token-index)) 'state))))
+            (loop until (or (drei-buffer:mark<= (drei-syntax:end-offset (drei-syntax:lexeme lexer (1- start-token-index))) top)
+                            (not (drei-syntax:parse-state-empty-p 
+                                  (slot-value (drei-syntax:lexeme lexer (1- start-token-index)) 'state))))
                do (decf start-token-index))
             ;; display the parse tree if any
-            (unless (parse-state-empty-p (slot-value (lexeme lexer (1- start-token-index)) 'state))
-              (display-parse-state (slot-value (lexeme lexer (1- start-token-index)) 'state)
+            (unless (drei-syntax:parse-state-empty-p (slot-value (drei-syntax:lexeme lexer (1- start-token-index)) 'state))
+              (display-parse-state (slot-value (drei-syntax:lexeme lexer (1- start-token-index)) 'state)
                                    pane drei syntax))
             ;; display the lexemes
             (with-drawing-options (pane :ink +red+)
               (loop while (< start-token-index end-token-index)
-                 do (let ((token (lexeme lexer start-token-index)))
+                 do (let ((token (drei-syntax:lexeme lexer start-token-index)))
                       (display-parse-tree token pane drei syntax))
                  (incf start-token-index)))))))))

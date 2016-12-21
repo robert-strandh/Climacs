@@ -61,7 +61,7 @@
 (defun view->paiprolog (view)
   (let ((lexemes (drei-syntax::lexemes (lexer (syntax view))))
         (expressions '()))
-    (update-parse (syntax view))
+    (drei-syntax:update-parse (drei-syntax:syntax view))
     (dotimes (i (flexichain:nb-elements lexemes) (nreverse expressions))
       (let ((lexeme (flexichain:element* lexemes i)))
         (when (typep lexeme 'end-lexeme)

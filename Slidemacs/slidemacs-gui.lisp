@@ -24,7 +24,7 @@
 
 ;;; Share the same package to make it easy to reuse the parser
 
-(define-syntax slidemacs-gui-syntax (slidemacs-editor-syntax)
+(drei-syntax:define-syntax slidemacs-gui-syntax (slidemacs-editor-syntax)
   ((lexer :reader lexer)
    (valid-parse :initform 1) (parser))
   (:name "Slidemacs-GUI")
@@ -42,8 +42,8 @@
 
 (defun slidemacs-entity-string (entity)
   (coerce (drei-buffer:buffer-sequence (buffer entity)
-                           (1+ (start-offset entity))
-                           (1- (end-offset entity)))
+                           (1+ (drei-syntax:start-offset entity))
+                           (1- (drei-syntax:end-offset entity)))
           'string))
 
 (defparameter *postscript-display* nil)
@@ -179,8 +179,8 @@
 (defmethod display-parse-tree ((parse-tree slidemacs-slide) (syntax slidemacs-gui-syntax) pane)
   (when (or *postscript-display*
             (with-slots (point) pane
-              (and (drei-buffer:mark>= point (start-offset parse-tree))
-                   (drei-buffer:mark<= point (end-offset parse-tree)))))
+              (and (drei-buffer:mark>= point (drei-syntax:start-offset parse-tree))
+                   (drei-buffer:mark<= point (drei-syntax:end-offset parse-tree)))))
     (when (boundp '*did-display-a-slide*)
       (setf *did-display-a-slide* t))
     (with-slots (slidemacs-slide-name nonempty-list-of-bullets)
@@ -203,8 +203,8 @@
 (defmethod display-parse-tree ((parse-tree slidemacs-graph-slide) (syntax slidemacs-gui-syntax) pane)
   (when (or *postscript-display*
             (with-slots (point) pane
-              (and (drei-buffer:mark>= point (start-offset parse-tree))
-                   (drei-buffer:mark<= point (end-offset parse-tree)))))
+              (and (drei-buffer:mark>= point (drei-syntax:start-offset parse-tree))
+                   (drei-buffer:mark<= point (drei-syntax:end-offset parse-tree)))))
     (when (boundp '*did-display-a-slide*)
       (setf *did-display-a-slide* t))
     (with-slots (slidemacs-slide-name orientation list-of-roots list-of-edges)
@@ -278,8 +278,8 @@
   (with-text-style (pane `(:sans-serif :roman ,(getf *slidemacs-sizes* :bullet)))
     (if (and (not *postscript-display*)
              (with-slots (point) pane
-               (and (drei-buffer:mark>= point (start-offset entity))
-                    (drei-buffer:mark<= point (end-offset entity)))))
+               (and (drei-buffer:mark>= point (drei-syntax:start-offset entity))
+                    (drei-buffer:mark<= point (drei-syntax:end-offset entity)))))
         (with-text-face (pane :bold)
           (call-next-method))
         (call-next-method))))
@@ -429,8 +429,8 @@
     (setf ink (medium-ink (sheet-medium pane))
           face (text-style-face (medium-text-style (sheet-medium pane))))
     (present (coerce (drei-buffer:buffer-sequence (buffer syntax)
-                                      (start-offset entity)
-                                      (end-offset entity))
+                                      (drei-syntax:start-offset entity)
+                                      (drei-syntax:end-offset entity))
                      'string)
              'string
              :stream pane)))
@@ -442,13 +442,13 @@
     (with-slots (top bot point) pane
       (with-slots (lexer) syntax
         ;; display the parse tree if any
-        (let ((token (1- (nb-lexemes lexer))))
+        (let ((token (1- (drei-syntax:nb-lexemes lexer))))
           (loop while (and (>= token 0)
-                           (parse-state-empty-p (slot-value (lexeme lexer token) 'state)))
+                           (drei-syntax:parse-state-empty-p (slot-value (drei-syntax:lexeme lexer token) 'state)))
              do (decf token))
-          (if (not (parse-state-empty-p (slot-value (lexeme lexer token) 'state)))
+          (if (not (drei-syntax:parse-state-empty-p (slot-value (drei-syntax:lexeme lexer token) 'state)))
                (display-parse-state
-               (slot-value (lexeme lexer token) 'state) syntax pane)
+               (slot-value (drei-syntax:lexeme lexer token) 'state) syntax pane)
               (format *debug-io* "Empty parse state.~%")))
         ;; DON'T display the lexemes
         )
@@ -462,15 +462,15 @@
         (stream file-stream :orientation :landscape :device-type :letter)
   (with-drawing-options (stream :ink *slidemacs-gui-ink*)
     (with-slots (top bot point) pane
-      (let ((syntax (syntax (buffer pane))))
+      (let ((syntax (drei-syntax:syntax (buffer pane))))
         (with-slots (lexer) syntax
           ;; display the parse tree if any
-          (let ((token (1- (nb-lexemes lexer))))
+          (let ((token (1- (drei-syntax:nb-lexemes lexer))))
             (loop while (and (>= token 0)
-                             (parse-state-empty-p (slot-value (lexeme lexer token) 'state)))
+                             (drei-syntax:parse-state-empty-p (slot-value (drei-syntax:lexeme lexer token) 'state)))
                do (decf token))
-            (if (not (parse-state-empty-p (slot-value (lexeme lexer token) 'state)))
-                (display-parse-tree-for-postscript (slot-value (slot-value (target-parse-tree (slot-value (lexeme lexer token) 'state)) 'item) 'item) syntax stream)              
+            (if (not (drei-syntax:parse-state-empty-p (slot-value (drei-syntax:lexeme lexer token) 'state)))
+                (display-parse-tree-for-postscript (slot-value (slot-value (drei-syntax:target-parse-tree (slot-value (drei-syntax:lexeme lexer token) 'state)) 'item) 'item) syntax stream)              
                 (format *debug-io* "Empty parse state.~%")))
           ;; DON'T display the lexemes
           ))
@@ -486,31 +486,31 @@
 (define-command (com-next-talking-point :name t :command-table slidemacs-table) ()
   (let* ((pane (climacs-gui::current-window))
          (buffer (buffer pane))
-         (syntax (syntax buffer)))
+         (syntax (drei-syntax:syntax buffer)))
     (with-slots (point) pane
       (with-slots (lexer) syntax
         (let ((point-pos (drei-buffer:offset point)))
-          (loop for token from 0 below (nb-lexemes lexer)
-               for lexeme = (lexeme lexer token)
+          (loop for token from 0 below (drei-syntax:nb-lexemes lexer)
+               for lexeme = (drei-syntax:lexeme lexer token)
              do
              (when (and (talking-point-stop-p lexeme)
-                        (> (start-offset lexeme) point-pos))
-               (return (setf (drei-buffer:offset point) (start-offset lexeme)))))
+                        (> (drei-syntax:start-offset lexeme) point-pos))
+               (return (setf (drei-buffer:offset point) (drei-syntax:start-offset lexeme)))))
           (full-redisplay pane))))))
 
 (define-command (com-previous-talking-point :name t :command-table slidemacs-table) ()
   (let* ((pane (climacs-gui::current-window))
          (buffer (buffer pane))
-         (syntax (syntax buffer)))
+         (syntax (drei-syntax:syntax buffer)))
     (with-slots (point) pane
       (with-slots (lexer) syntax
         (let ((point-pos (drei-buffer:offset point)))
-          (loop for token from (1- (nb-lexemes lexer)) downto 0
-             for lexeme = (lexeme lexer token)
+          (loop for token from (1- (drei-syntax:nb-lexemes lexer)) downto 0
+             for lexeme = (drei-syntax:lexeme lexer token)
              do
              (when (and (talking-point-stop-p lexeme)
-                        (< (start-offset lexeme) point-pos))
-               (return (setf (drei-buffer:offset point) (start-offset lexeme)))))
+                        (< (drei-syntax:start-offset lexeme) point-pos))
+               (return (setf (drei-buffer:offset point) (drei-syntax:start-offset lexeme)))))
           (full-redisplay pane))))))
 
 (defun adjust-font-sizes (decrease-p)
@@ -539,13 +539,13 @@
 
 (define-command (com-flip-slidemacs-syntax :name t :command-table slidemacs-table) ()
   (let* ((buffer (buffer (climacs-gui::current-window)))
-         (syntax (syntax buffer)))
+         (syntax (drei-syntax:syntax buffer)))
     (typecase syntax
       (slidemacs-gui-syntax
-       (setf (syntax buffer) (make-instance 'slidemacs-editor-syntax
+       (setf (drei-syntax:syntax buffer) (make-instance 'slidemacs-editor-syntax
                                             :buffer buffer)))
       (slidemacs-editor-syntax
-       (setf (syntax buffer) (make-instance 'slidemacs-gui-syntax
+       (setf (drei-syntax:syntax buffer) (make-instance 'slidemacs-gui-syntax
                                             :buffer buffer))))))
 
 (esa:set-key  'com-next-talking-point
@@ -573,7 +573,7 @@
 (define-command (com-postscript-print-presentation :name t :command-table slidemacs-table) ()
   (let ((pane (climacs-gui::current-window)))
     (if (not (and (typep pane 'drei-pane)
-                  (typep (syntax (buffer pane)) 'slidemacs-gui-syntax)))
+                  (typep (drei-syntax:syntax (buffer pane)) 'slidemacs-gui-syntax)))
         (beep)
         (let ((file (accept 'pathname :prompt "Output to")))
           (postscript-print-pane pane file)))))

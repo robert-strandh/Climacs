@@ -33,7 +33,7 @@
 (make-command-table 'climacs-lisp-table
                     :errorp nil)
 
-(defmethod additional-command-tables append ((frame climacs-gui:climacs) (command-table lisp-table))
+(defmethod drei-syntax:additional-command-tables append ((frame climacs-gui:climacs) (command-table lisp-table))
   '(climacs-lisp-table))
 
 (define-command (com-package :name t :command-table climacs-lisp-table) ()
@@ -153,7 +153,7 @@ If there is no symbol at point, this is a no-op."
     (when (and this-symbol (symbolp this-symbol))
       (let ((local-definition (find-local-definition (current-syntax) token)))
         (if local-definition
-            (setf (drei-buffer:offset (point)) (start-offset local-definition))
+            (setf (drei-buffer:offset (point)) (drei-syntax:start-offset local-definition))
             (edit-definition this-symbol))))))
 
 (define-command (com-return-from-definition :name t :command-table climacs-lisp-table)

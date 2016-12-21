@@ -30,25 +30,25 @@
 ;;;
 ;;; The command table.
 
-(define-syntax-command-table c-table
+(drei-syntax:define-syntax-command-table c-table
     :errorp nil)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
 ;;; the syntax object
 
-(define-syntax c-syntax (lr-syntax-mixin fundamental-syntax)
+(drei-syntax:define-syntax c-syntax (lr-syntax-mixin fundamental-syntax)
   ()
   (:name "C")
   (:pathname-types "c" "h")
   (:command-table c-table)
   (:default-initargs :initial-state |initial-state |))
 
-(defmethod name-for-info-pane ((syntax c-syntax) &key pane)
+(defmethod drei-syntax:name-for-info-pane ((syntax c-syntax) &key pane)
   (declare (ignore pane))
   (format nil "C"))
 
-(defmethod display-syntax-name ((syntax c-syntax)
+(defmethod drei-syntax:display-syntax-name ((syntax c-syntax)
 				(stream extended-output-stream) &key pane)
   (declare (ignore pane))
   (princ "C" stream))
@@ -99,7 +99,7 @@
 
 (defclass error-symbol (c-nonterminal) ())
 
-(defclass c-lexeme (lexeme)
+(defclass c-lexeme (drei-syntax:lexeme)
   ((ink)
    (face)))
 
@@ -250,7 +250,7 @@
   (macrolet ((fo () `(drei-buffer:forward-object scan)))
     (loop when (drei-buffer:end-of-buffer-p scan)
 	    do (return nil)
-	  until (not (whitespacep syntax (drei-buffer:object-after scan)))
+	  until (not (drei-syntax:whitespacep syntax (drei-buffer:object-after scan)))
 	  do (fo)
 	  finally (return t))))
 
@@ -410,7 +410,7 @@
 (defmethod skip-inter ((syntax c-syntax) (state lexer-preprocessor-state) scan)
   (macrolet ((fo () `(drei-buffer:forward-object scan)))
     (loop until (or (drei-buffer:end-of-line-p scan)
-		    (not (whitespacep syntax (drei-buffer:object-after scan))))
+		    (not (drei-syntax:whitespacep syntax (drei-buffer:object-after scan))))
 	  do (fo)
 	  finally (return t))))
 
@@ -421,7 +421,7 @@
     (loop with newline-seen = nil
 	  until (or (drei-buffer:end-of-buffer-p scan)
 		    (and newline-seen (drei-buffer:end-of-line-p scan))
-		    (not (whitespacep syntax (drei-buffer:object-after scan))))
+		    (not (drei-syntax:whitespacep syntax (drei-buffer:object-after scan))))
 	  when (eql (drei-buffer:object-after scan) #\Newline)
 	    do (setf newline-seen t)
 	  do (fo)
@@ -515,7 +515,7 @@
 (defmethod skip-inter ((syntax c-syntax) (state lexer-line-comment-state) scan)
   (macrolet ((fo () `(drei-buffer:forward-object scan)))
     (loop until (or (drei-buffer:end-of-line-p scan)
-		    (not (whitespacep syntax (drei-buffer:object-after scan))))
+		    (not (drei-syntax:whitespacep syntax (drei-buffer:object-after scan))))
 	  do (fo)
 	  finally (return t))))
 
@@ -780,9 +780,9 @@
 (defun form-string (syntax form)
   "Return the string that correspond to `form' in the buffer of
 `syntax'."
-  (drei-buffer:buffer-substring (buffer syntax) (start-offset form) (end-offset form)))
+  (drei-buffer:buffer-substring (buffer syntax) (drei-syntax:start-offset form) (drei-syntax:end-offset form)))
 
-(define-syntax-highlighting-rules default-c-highlighting
+(drei-syntax:define-syntax-highlighting-rules default-c-highlighting
   (error-symbol (*error-drawing-options*))
   (string-form (*string-drawing-options*))
   (operator (*special-operator-drawing-options*))
@@ -823,10 +823,10 @@ treat comments as forms."
   (loop for count from (1- (length tlv)) downto 0
 	for tlf = (aref tlv count)
 	when (and (or (not ignore-comments-p) (not (commentp tlf)))
-		  (< (start-offset tlf) offset (end-offset tlf)))
+		  (< (drei-syntax:start-offset tlf) offset (drei-syntax:end-offset tlf)))
 	  return (values tlf count)
 	when (and (or (not ignore-comments-p) (not (commentp tlf)))
-		  (<= (end-offset tlf) offset))
+		  (<= (drei-syntax:end-offset tlf) offset))
 	  return (values tlf count)
 	finally (return nil)))
 
@@ -839,10 +839,10 @@ treat comments as forms."
   (loop for tlf across tlv
 	for count from 0
 	when (and (or (not ignore-comments-p) (not (commentp tlf)))
-		  (< (start-offset tlf) offset (end-offset tlf)))
+		  (< (drei-syntax:start-offset tlf) offset (drei-syntax:end-offset tlf)))
 	  return (values tlf count)
 	when (and (or (not ignore-comments-p) (not (commentp tlf)))
-		  (>= (start-offset tlf) offset))
+		  (>= (drei-syntax:start-offset tlf) offset))
 	  return (values tlf count)
 	finally (return nil)))
 
@@ -855,10 +855,10 @@ treat comments as forms."
   (loop for tlf across tlv
 	for count from 0
 	when (and (or (not ignore-comments-p) (not (commentp tlf)))
-		  (< (start-offset tlf) offset (end-offset tlf)))
+		  (< (drei-syntax:start-offset tlf) offset (drei-syntax:end-offset tlf)))
 	  return (values tlf count)
 	when (and (or (not ignore-comments-p) (not (commentp tlf)))
-		  (>= (start-offset tlf) offset))
+		  (>= (drei-syntax:start-offset tlf) offset))
 	  return nil
 	finally (return nil)))
 
@@ -924,10 +924,10 @@ treat comments as forms."
 		    do (decf delims)
 		  until (zerop delims)
 		  finally (cond ((zerop delims)
-				 (setf (drei-buffer:offset mark) (start-offset match))
+				 (setf (drei-buffer:offset mark) (drei-syntax:start-offset match))
 				 (return t))
 				(t (return nil))))
-	    (setf (drei-buffer:offset mark) (start-offset form)))))))
+	    (setf (drei-buffer:offset mark) (drei-syntax:start-offset form)))))))
 
 (defmethod drei-motion:forward-one-expression (mark (syntax c-syntax))
   (let ((tlv (top-level-vector syntax)))
@@ -945,10 +945,10 @@ treat comments as forms."
 		    do (decf delims)
 		  until (zerop delims)
 		  finally (cond ((zerop delims)
-				 (setf (drei-buffer:offset mark) (end-offset match))
+				 (setf (drei-buffer:offset mark) (drei-syntax:end-offset match))
 				 (return t))
 				(t (return nil))))
-	    (setf (drei-buffer:offset mark) (end-offset form)))))))
+	    (setf (drei-buffer:offset mark) (drei-syntax:end-offset form)))))))
 
 (defmethod drei-motion:forward-one-list ((mark mark) (syntax c-syntax))
   (let ((tlv (top-level-vector syntax)))
@@ -967,7 +967,7 @@ treat comments as forms."
 							 (car delims))
 				   (pop delims)
 				   (when (null delims)
-				     (setf (drei-buffer:offset mark) (end-offset match))
+				     (setf (drei-buffer:offset mark) (drei-syntax:end-offset match))
 				     (return t)))
 				  (t (return nil)))))
 	      finally (return nil))))))
@@ -990,7 +990,7 @@ treat comments as forms."
 						     (car delims))
 			       (pop delims)
 			       (when (null delims)
-				 (setf (drei-buffer:offset mark) (start-offset match))
+				 (setf (drei-buffer:offset mark) (drei-syntax:start-offset match))
 				 (return t)))
 			      (t (return nil))))) 
 	      finally (return nil))))))
@@ -1005,7 +1005,7 @@ treat comments as forms."
 	(loop for index from count downto 0
 	      for match = (aref tlv index)
 	      when (closing-delimiter-p match)
-		do (setf (drei-buffer:offset mark) (start-offset match))
+		do (setf (drei-buffer:offset mark) (drei-syntax:start-offset match))
 		   (return t)
 	      finally (return nil))))))
 
@@ -1021,7 +1021,7 @@ treat comments as forms."
 		do (push match delims)
 	      when (opening-delimiter-p match)
 		do (cond ((null delims)
-			  (setf (drei-buffer:offset mark) (start-offset match))
+			  (setf (drei-buffer:offset mark) (drei-syntax:start-offset match))
 			  (return t))
 			 ((matching-delimiter-p match 
 						(car delims))
@@ -1037,7 +1037,7 @@ treat comments as forms."
 	(loop for index from count below (length tlv)
 	      for match = (aref tlv index)
 	      when (opening-delimiter-p match)
-		do (setf (drei-buffer:offset mark) (end-offset match))
+		do (setf (drei-buffer:offset mark) (drei-syntax:end-offset match))
 		   (return t)
 	      finally (return nil))))))
 
@@ -1053,7 +1053,7 @@ treat comments as forms."
 		do (push match delims)
 	      when (closing-delimiter-p match)
 		do (cond ((null delims)
-			  (setf (drei-buffer:offset mark) (end-offset match))
+			  (setf (drei-buffer:offset mark) (drei-syntax:end-offset match))
 			  (return t))
 			 ((matching-delimiter-p match 
 						(car delims))
@@ -1084,7 +1084,7 @@ treat comments as forms."
 	  do (incf (drei-buffer:offset mark2))
           finally (return column))))
 
-(defmethod syntax-line-indentation (mark tab-width (syntax c-syntax))
+(defmethod drei-syntax:syntax-line-indentation (mark tab-width (syntax c-syntax))
   (setf mark (drei-buffer:clone-mark mark))
   (let ((this-indentation (line-indentation mark tab-width)))
     (drei-buffer:beginning-of-line mark)
@@ -1098,14 +1098,14 @@ treat comments as forms."
 ;;;
 ;;; Commenting
 
-(defmethod syntax-line-comment-string ((syntax c-syntax))
+(defmethod drei-syntax:syntax-line-comment-string ((syntax c-syntax))
   "// ")
 
-(defmethod comment-region ((syntax c-syntax) mark1 mark2)
-  (line-comment-region syntax mark1 mark2))
+(defmethod drei-syntax:comment-region ((syntax c-syntax) mark1 mark2)
+  (drei-syntax:line-comment-region syntax mark1 mark2))
 
-(defmethod uncomment-region ((syntax c-syntax) mark1 mark2)
-  (line-uncomment-region syntax mark1 mark2))
+(defmethod drei-syntax:uncomment-region ((syntax c-syntax) mark1 mark2)
+  (drei-syntax:line-uncomment-region syntax mark1 mark2))
 
 ;;;;;;;;;;;
 
@@ -1121,7 +1121,7 @@ treat comments as forms."
     ()
   "Dump the parse trees to trace output."
   (let* ((buffer (current-buffer))
-	 (syntax (syntax buffer)))
+	 (syntax (drei-syntax:syntax buffer)))
     (pprint (collect-forms (slot-value syntax 'stack-top)) *trace-output*)
     (terpri *trace-output*)
     (finish-output *trace-output*)))
@@ -1137,7 +1137,7 @@ treat comments as forms."
     ()
   "Dump the toplevel parse trees to trace output."
   (let* ((buffer (current-buffer))
-	 (syntax (syntax buffer))
+	 (syntax (drei-syntax:syntax buffer))
 	 (pp-forms (remove-if-not 
 			  (lambda (form)
 			    (typep form 'preprocessor-directive-form))

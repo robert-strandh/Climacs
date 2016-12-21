@@ -172,7 +172,7 @@ Each newline and following whitespace is replaced by a single space."
                                    :fill-pointer 0)
      when (char= (char string count) #\Newline)
      do (loop while (and (< count (length string))
-                         (whitespacep (current-syntax) (char string count)))
+                         (drei-syntax:whitespacep (current-syntax) (char string count)))
            do (incf count)
            ;; Just ignore whitespace if it is last in the
            ;; string.
@@ -253,7 +253,7 @@ Each newline and following whitespace is replaced by a single space."
 ;;; Macroexpansion and evaluation
 
 (defun macroexpand-token (syntax token &optional (all nil))
-  (with-syntax-package (syntax (start-offset token))
+  (with-syntax-package (syntax (drei-syntax:start-offset token))
     (let* ((string (form-string syntax token))
            (expression (read-from-string string))
            (expansion (macroexpand-for-drei (get-usable-image syntax)
@@ -275,12 +275,12 @@ Each newline and following whitespace is replaced by a single space."
         (drei-buffer:insert-object (point) #\Newline)))))
 
 (defun compile-definition-interactively (view mark)
-  (let* ((syntax (syntax view))
+  (let* ((syntax (drei-syntax:syntax view))
          (token (definition-at-mark syntax mark))
          (string (form-string syntax token))
          (m (drei-buffer:clone-mark mark))
          (*read-base* (base syntax)))
-    (with-syntax-package (syntax mark)
+    (with-syntax-package (drei-syntax:syntax mark)
       (drei-motion:forward-definition m syntax 1 nil)
       (if (drei-motion:backward-definition m syntax 1 nil)
           (multiple-value-bind (result notes)
@@ -303,11 +303,11 @@ Each newline and following whitespace is replaced by a single space."
            (when (and (needs-saving buffer)
                       (accept 'boolean :prompt (format nil "Save buffer ~A ?" (name view))))
              (climacs-core:save-buffer buffer))
-           (let ((*read-base* (base (syntax view))))
+           (let ((*read-base* (base (drei-syntax:syntax view))))
              (multiple-value-bind (result notes)
-                 (compile-file-for-drei (get-usable-image (syntax view))
+                 (compile-file-for-drei (get-usable-image (drei-syntax:syntax view))
                                         (filepath buffer)
-                                        (package-at-mark (syntax view) 0) load-p)
+                                        (package-at-mark (drei-syntax:syntax view) 0) load-p)
                (show-note-counts notes (second result))
                (when notes (show-notes notes (name view) ""))))))))
 
@@ -366,7 +366,7 @@ macros or similar). If no such form can be found, return NIL."
                         return binding))
                    (unless (form-at-top-level-p form)
                      (find-local-binding (parent form)))))))
-    (find-local-binding (list-at-mark syntax (start-offset symbol-form)))))
+    (find-local-binding (list-at-mark syntax (drei-syntax:start-offset symbol-form)))))
 
 (defun edit-definition (symbol &optional type)
   (let ((all-definitions (find-definitions-for-drei

@@ -36,7 +36,7 @@
 (make-command-table 'pane-java-table
                     :errorp nil)
 
-(defmethod additional-command-tables append ((drei drei-pane) 
+(defmethod drei-syntax:additional-command-tables append ((drei drei-pane) 
 					     (command-table java-table))
   '(pane-java-table))
 
@@ -61,12 +61,12 @@ string at point."
   (let* ((token (form-around (current-syntax) (drei-buffer:offset (point))))
          (fill-column (auto-fill-column (current-view))))
     (when (typep token 'string-form)
-      (with-accessors ((offset1 start-offset)
-                       (offset2 end-offset)) token
+      (with-accessors ((offset1 drei-syntax:start-offset)
+                       (offset2 drei-syntax:end-offset)) token
         (fill-region (drei-buffer:make-buffer-mark (current-buffer) offset1 :right)
                      (drei-buffer:make-buffer-mark (current-buffer) offset2 :right)
                      #'(lambda (mark)
-                         (syntax-line-indentation
+                         (drei-syntax:syntax-line-indentation
                           mark (tab-space-count (current-view)) (current-syntax)))
                      fill-column
                      (tab-space-count (current-view))

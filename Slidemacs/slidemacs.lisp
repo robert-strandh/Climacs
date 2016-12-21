@@ -29,7 +29,7 @@
 
 (defgeneric display-parse-tree (entity syntax pane))
 
-(defclass slidemacs-parse-tree (parse-tree) ())
+(defclass slidemacs-parse-tree (drei-syntax:parse-tree) ())
 
 (defclass slidemacs-entry (slidemacs-parse-tree)
   ((ink) (face) (state :initarg :state)))
@@ -46,8 +46,8 @@
 (defmethod lexeme-string ((thing slidemacs-entry))
   (coerce
    (drei-buffer:buffer-sequence (buffer thing)
-                    (start-offset thing)
-                    (end-offset thing))
+                    (drei-syntax:start-offset thing)
+                    (drei-syntax:end-offset thing))
    'string))
 
 (defmethod print-object ((o slidemacs-lexeme) s)
@@ -62,14 +62,14 @@
 (define-lexemes slidemacs-lexeme start-lexeme slidemacs-keyword
                 block-open block-close slidemacs-quoted-string slidemacs-italic-string bullet other-entry)
 
-(defclass slidemacs-lexer (incremental-lexer) ())
+(defclass slidemacs-lexer (drei-syntax:incremental-lexer) ())
 
 (defun identifier-char-p (var &key start)
   (and (characterp var)
        (if start (alpha-char-p var) t)
        (or (alphanumericp var) (eql var #\_))))
 
-(defmethod next-lexeme ((lexer slidemacs-lexer) scan)
+(defmethod drei-syntax:next-lexeme ((lexer slidemacs-lexer) scan)
   (flet ((fo () (drei-buffer:forward-object scan)))
     (let ((object (drei-buffer:object-after scan)))
       (macrolet ((dispatch-object (&body cases)
@@ -105,27 +105,27 @@
                  (make-instance 'slidemacs-keyword))
                 (t (fo) (make-instance 'other-entry)))))))))
 
-(define-syntax slidemacs-editor-syntax (fundamental-syntax)
+(drei-syntax:define-syntax slidemacs-editor-syntax (fundamental-syntax)
   ((lexer :reader lexer)
    (valid-parse :initform 1) (parser))
   (:name "Slidemacs-Editor")
   (:pathname-types "slidemacs"))
 
-(defparameter *slidemacs-grammar* (grammar))
+(defparameter *slidemacs-grammar* (drei-syntax:grammar))
 
 (defmethod initialize-instance :after ((syntax slidemacs-editor-syntax) &rest args)
   (declare (ignore args))
   (with-slots (parser lexer buffer) syntax
-    (setf parser (make-instance 'parser
+    (setf parser (make-instance 'drei-syntax:parser
 				:grammar *slidemacs-grammar*
 				:target 'slidemacs-terminals))
     (setf lexer (make-instance 'slidemacs-lexer :buffer (buffer syntax)))
     (let ((m (drei-buffer:clone-mark (low-mark buffer) :left))
-	   (lexeme (make-instance 'start-lexeme :state (initial-state parser))))
+	   (lexeme (make-instance 'start-lexeme :state (drei-syntax:initial-state parser))))
       (setf (drei-buffer:offset m) 0)
-      (setf (start-offset lexeme) m
-	    (end-offset lexeme) 0)
-      (insert-lexeme lexer 0 lexeme))))
+      (setf (drei-syntax:start-offset lexeme) m
+	    (drei-syntax:end-offset lexeme) 0)
+      (drei-syntax:insert-lexeme lexer 0 lexeme))))
 
 (defmacro define-list (name empty-name nonempty-name item-name)
   `(progn
@@ -136,9 +136,9 @@
        ((items :initarg :items)
 	(item :initarg :item)))
      
-     (add-rule (grammar-rule (,name -> () (make-instance ',empty-name))) *slidemacs-grammar*)
+     (drei-syntax:add-rule (drei-syntax:grammar-rule (,name -> () (make-instance ',empty-name))) *slidemacs-grammar*)
      
-     (add-rule (grammar-rule
+     (drei-syntax:add-rule (drei-syntax:grammar-rule
 		(,name -> (,name ,item-name)
 		       (make-instance ',nonempty-name
 				      :items ,name :item ,item-name))) *slidemacs-grammar*)
@@ -165,7 +165,7 @@
 (defgeneric word-is (word string))
 
 (defmethod word-is (word string)
-  (string-equal (coerce (drei-buffer:buffer-sequence (buffer word) (start-offset word) (end-offset word)) 'string)
+  (string-equal (coerce (drei-buffer:buffer-sequence (buffer word) (drei-syntax:start-offset word) (drei-syntax:end-offset word)) 'string)
 		string))
 
 (eval-when (:compile-toplevel :load-toplevel :execute)
@@ -195,9 +195,9 @@
 	     ((and (eql (length rule-body) 1)
 		   (typep (first rule-body) 'string))
 	      `((defclass ,name (,entry) ((word :initarg :word)))
-		(add-rule (grammar-rule (,name -> ((word slidemacs-keyword (word-is word ,(first rule-body)))) :word word))
+		(drei-syntax:add-rule (drei-syntax:grammar-rule (,name -> ((word slidemacs-keyword (word-is word ,(first rule-body)))) :word word))
                  ,grammar)
-		,@(if start-p `((add-rule (grammar-rule (,terminal -> (,name) :item ,name)) ,grammar)))
+		,@(if start-p `((drei-syntax:add-rule (drei-syntax:grammar-rule (,terminal -> (,name) :item ,name)) ,grammar)))
 		(defmethod display-parse-tree :around ((entity ,name) (syntax ,syntax) pane)
                            (with-drawing-options (pane :ink +blue-violet+)
                              (call-next-method)))))
@@ -206,32 +206,32 @@
 		   (eq (first (first rule-body)) 'or))
 	      `((defclass ,name (,entry) ((item :initarg :item)))
 		,@(loop for alt in (cdr (first rule-body))
-                        collect `(add-rule (grammar-rule (,name -> ((item ,alt)) :item item)) ,grammar))
-		,@(if start-p `((add-rule (grammar-rule (,terminal -> (,name) :item ,name)) ,grammar)))
+                        collect `(drei-syntax:add-rule (drei-syntax:grammar-rule (,name -> ((item ,alt)) :item item)) ,grammar))
+		,@(if start-p `((drei-syntax:add-rule (drei-syntax:grammar-rule (,terminal -> (,name) :item ,name)) ,grammar)))
 		(defmethod display-parse-tree ((entity ,name) (syntax ,syntax) pane)
 		  (display-parse-tree (slot-value entity 'item) syntax pane))))
 	     ((and (eql (length rule-body) 1)
 		   (typep (first rule-body) 'cons)
 		   (eq (first (first rule-body)) 'nonempty-list-of))
 	      `((define-simple-nonempty-list ,name ,(second (first rule-body)))
-		,@(if start-p `((add-rule (grammar-rule (,terminal -> (,name) :item ,name)) ,grammar)))))
+		,@(if start-p `((drei-syntax:add-rule (drei-syntax:grammar-rule (,terminal -> (,name) :item ,name)) ,grammar)))))
 	     ((and (eql (length rule-body) 1)
 		   (typep (first rule-body) 'cons)
 		   (eq (first (first rule-body)) 'list-of))
 	      `((define-simple-list ,name ,(second (first rule-body)))
-		,@(if start-p `((add-rule (grammar-rule (,terminal -> (,name) :item ,name)) ,grammar)))))
+		,@(if start-p `((drei-syntax:add-rule (drei-syntax:grammar-rule (,terminal -> (,name) :item ,name)) ,grammar)))))
 	     ((every #'symbolp rule-body)
 	      `((defclass ,name (,entry)
 		  (,@(loop for component in rule-body
                            collect `(,component :initarg ,(intern (symbol-name component) :keyword)))))
-		(add-rule
-		 (grammar-rule (,name ->
+		(drei-syntax:add-rule
+		 (drei-syntax:grammar-rule (,name ->
 				      (,@(loop for component in rule-body
                                                collect `(,component ,component)))
 				      ,@(loop for component in rule-body
                                               appending `(,(intern (symbol-name component) :keyword)
                                                           ,component)))) ,grammar)
-		,@(if start-p `((add-rule (grammar-rule (,terminal -> (,name) :item ,name)) ,grammar)))
+		,@(if start-p `((drei-syntax:add-rule (drei-syntax:grammar-rule (,terminal -> (,name) :item ,name)) ,grammar)))
 		(defmethod display-parse-tree ((entity ,name) (syntax ,syntax) pane)
 		  (with-slots ,rule-body
                     entity
@@ -338,8 +338,8 @@
 		       (setf ink (medium-ink (sheet-medium pane))
 			     face (text-style-face (medium-text-style (sheet-medium pane))))
 		       (present (coerce (drei-buffer:buffer-sequence (buffer syntax)
-							 (start-offset entity)
-							 (end-offset entity))
+							 (drei-syntax:start-offset entity)
+							 (drei-syntax:end-offset entity))
 					'string)
 				'string
 				:stream pane)))))
@@ -347,37 +347,37 @@
 (defgeneric display-parse-stack (symbol stack syntax pane))
 
 (defmethod display-parse-stack (symbol stack (syntax slidemacs-editor-syntax) pane)
-  (let ((next (parse-stack-next stack)))
+  (let ((next (drei-syntax:parse-stack-next stack)))
     (unless (null next)
-      (display-parse-stack (parse-stack-symbol next) next syntax pane))
-    (loop for parse-tree in (reverse (parse-stack-parse-trees stack))
+      (display-parse-stack (drei-syntax:parse-stack-symbol next) next syntax pane))
+    (loop for parse-tree in (reverse (drei-syntax:parse-stack-parse-trees stack))
        do (display-parse-tree parse-tree syntax pane)))) 
 
 (defun display-parse-state (state syntax pane)
-  (let ((top (parse-stack-top state)))
+  (let ((top (drei-syntax:parse-stack-top state)))
     (if (not (null top))
-	(display-parse-stack (parse-stack-symbol top) top syntax pane)
-	(display-parse-tree (target-parse-tree state) syntax pane))))
+	(display-parse-stack (drei-syntax:parse-stack-symbol top) top syntax pane)
+	(display-parse-tree (drei-syntax:target-parse-tree state) syntax pane))))
 
 (defmethod update-syntax-for-display (buffer (syntax slidemacs-editor-syntax) top bot)
   nil)
 
-(defmethod inter-lexeme-object-p ((lexer slidemacs-lexer) object)
-  (whitespacep (syntax (buffer lexer)) object))
+(defmethod drei-syntax:inter-lexeme-object-p ((lexer slidemacs-lexer) object)
+  (drei-syntax:whitespacep (drei-syntax:syntax (buffer lexer)) object))
 
-(defmethod update-syntax (buffer (syntax slidemacs-editor-syntax))
+(defmethod drei-syntax:update-syntax (buffer (syntax slidemacs-editor-syntax))
   (with-slots (parser lexer valid-parse) syntax
     (let* ((low-mark (low-mark buffer))
 	   (high-mark (high-mark buffer)))
        (when (drei-buffer:mark<= low-mark high-mark)
-	 (let ((first-invalid-position (delete-invalid-lexemes lexer low-mark high-mark)))
+	 (let ((first-invalid-position (drei-syntax:delete-invalid-lexemes lexer low-mark high-mark)))
 	   (setf valid-parse first-invalid-position)
-	   (update-lex lexer first-invalid-position high-mark)
-           (loop until (= valid-parse (nb-lexemes lexer))
-                 do (let ((current-token (lexeme lexer (1- valid-parse)))
-                          (next-lexeme (lexeme lexer valid-parse)))
+	   (drei-syntax:update-lex lexer first-invalid-position high-mark)
+           (loop until (= valid-parse (drei-syntax:nb-lexemes lexer))
+                 do (let ((current-token (drei-syntax:lexeme lexer (1- valid-parse)))
+                          (next-lexeme (drei-syntax:lexeme lexer valid-parse)))
                       (setf (slot-value next-lexeme 'state)
-                            (advance-parse parser (list next-lexeme) (slot-value current-token 'state))))
+                            (drei-syntax:advance-parse parser (list next-lexeme) (slot-value current-token 'state))))
                  (incf valid-parse)))))))
 
 (defvar *white-space-start* nil)
@@ -389,10 +389,10 @@
   (let ((space-width (space-width pane))
         (tab-width (tab-width pane)))
     (with-sheet-medium (medium pane)
-      (with-accessors ((cursor-positions cursor-positions)) (syntax buffer)
+      (with-accessors ((cursor-positions cursor-positions)) (drei-syntax:syntax buffer)
         (loop while (< start end)
            do (case (drei-buffer:buffer-object buffer start)
-                (#\Newline (record-line-vertical-offset pane (syntax buffer) (incf *current-line*))
+                (#\Newline (record-line-vertical-offset pane (drei-syntax:syntax buffer) (incf *current-line*))
                            (terpri pane)
                            (stream-increment-cursor-position
                             pane (first (aref cursor-positions 0)) 0))
@@ -407,13 +407,13 @@
 
 (defmethod display-parse-tree :before ((entity slidemacs-entry) (syntax slidemacs-editor-syntax) pane)
   (when *handle-whitespace*
-    (handle-whitespace pane (buffer pane) *white-space-start* (start-offset entity))
-    (setf *white-space-start* (end-offset entity))))
+    (handle-whitespace pane (buffer pane) *white-space-start* (drei-syntax:start-offset entity))
+    (setf *white-space-start* (drei-syntax:end-offset entity))))
 
 (defmethod display-parse-tree :around ((entity slidemacs-parse-tree) (syntax slidemacs-editor-syntax) pane)
   (if (not (typep syntax 'slidemacs-gui-syntax))
       (with-slots (top bot) pane
-        (when (and (end-offset entity) (drei-buffer:mark> (end-offset entity) top))
+        (when (and (drei-syntax:end-offset entity) (drei-buffer:mark> (drei-syntax:end-offset entity) top))
           (call-next-method)))
       (call-next-method)))
 
@@ -425,33 +425,33 @@
             *current-line* 0
             (aref cursor-positions 0) (multiple-value-list (stream-cursor-position pane))))
     (with-slots (lexer) syntax
-      (let ((average-token-size (max (float (/ (drei-buffer:size (buffer pane)) (nb-lexemes lexer)))
+      (let ((average-token-size (max (float (/ (drei-buffer:size (buffer pane)) (drei-syntax:nb-lexemes lexer)))
 				     1.0)))
 	;; find the last token before bot
 	(let ((end-token-index (max (floor (/ (drei-buffer:offset bot) average-token-size)) 1)))
 	  ;; go back to a token before bot
-	  (loop until (drei-buffer:mark<= (end-offset (lexeme lexer (1- end-token-index))) bot)
+	  (loop until (drei-buffer:mark<= (drei-syntax:end-offset (drei-syntax:lexeme lexer (1- end-token-index))) bot)
 	     do (decf end-token-index))
 	  ;; go forward to the last token before bot
-	  (loop until (or (= end-token-index (nb-lexemes lexer))
-			  (drei-buffer:mark> (start-offset (lexeme lexer end-token-index)) bot))
+	  (loop until (or (= end-token-index (drei-syntax:nb-lexemes lexer))
+			  (drei-buffer:mark> (drei-syntax:start-offset (drei-syntax:lexeme lexer end-token-index)) bot))
 	     do (incf end-token-index))
 	  (let ((start-token-index end-token-index))
 	    ;; go back to the first token after top, or until the previous token
 	    ;; contains a valid parser state
-	    (loop until (or (drei-buffer:mark<= (end-offset (lexeme lexer (1- start-token-index))) top)
-			    (not (parse-state-empty-p 
-				  (slot-value (lexeme lexer (1- start-token-index)) 'state))))
+	    (loop until (or (drei-buffer:mark<= (drei-syntax:end-offset (drei-syntax:lexeme lexer (1- start-token-index))) top)
+			    (not (drei-syntax:parse-state-empty-p 
+				  (slot-value (drei-syntax:lexeme lexer (1- start-token-index)) 'state))))
                do (decf start-token-index))
 	    (let ((*white-space-start* (drei-buffer:offset top)))
 	      ;; display the parse tree if any
-	      (unless (parse-state-empty-p (slot-value (lexeme lexer (1- start-token-index)) 'state))
-		(display-parse-state (slot-value (lexeme lexer (1- start-token-index)) 'state)
+	      (unless (drei-syntax:parse-state-empty-p (slot-value (drei-syntax:lexeme lexer (1- start-token-index)) 'state))
+		(display-parse-state (slot-value (drei-syntax:lexeme lexer (1- start-token-index)) 'state)
 				     syntax
 				     pane))
 	      ;; display the lexemes
 	      (with-drawing-options (pane :ink (make-rgb-color 0.7 0.7 0.7))
 		(loop while (< start-token-index end-token-index)
-		   do (let ((token (lexeme lexer start-token-index)))
+		   do (let ((token (drei-syntax:lexeme lexer start-token-index)))
 			(display-parse-tree token syntax pane))
                    (incf start-token-index))))))))))

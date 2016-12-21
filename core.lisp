@@ -144,7 +144,7 @@ it will be replaced by some other view."))
     (if syntax-description
         (drei-syntax::syntax-description-class-name
          syntax-description)
-        *default-syntax*)))
+        drei-syntax:*default-syntax*)))
 
 (defun evaluate-attributes (view options)
   "Evaluate the attributes `options' and modify `view' as
@@ -155,23 +155,23 @@ their values."
   ;; Emacs. If there is more than one option with one of these names,
   ;; only the first will be acted upon.
   (let ((specified-syntax
-         (syntax-from-name
+         (drei-syntax:syntax-from-name
           (second (find-if #'(lambda (name)
                                (or (string-equal name "SYNTAX")
                                    (string-equal name "MODE")))
                            options
                            :key #'first)))))
     (when (and specified-syntax
-               (not (eq (class-of (syntax view))
+               (not (eq (class-of (drei-syntax:syntax view))
                         specified-syntax)))
-      (setf (syntax view)
+      (setf (drei-syntax:syntax view)
             (make-syntax-for-view view specified-syntax))))
   ;; Now we iterate through the options (discarding SYNTAX and MODE
   ;; options).
   (loop for (name value) in options
      unless (or (string-equal name "SYNTAX")
                 (string-equal name "MODE"))
-     do (eval-option (syntax view) name value)))
+     do (drei-syntax:eval-option (drei-syntax:syntax view) name value)))
 
 (defun split-attribute (string char)
   (let (pairs)
@@ -250,7 +250,7 @@ their values."
             (drei-buffer:delete-region start-mark end-mark)
             (let ((new-line-start (drei-buffer:clone-mark start-mark :left)))
               (insert-sequence start-mark full-attribute-line)
-              (comment-region (syntax view)
+              (drei-syntax:comment-region (drei-syntax:syntax view)
                               new-line-start
                               start-mark)))
            (t
@@ -259,13 +259,13 @@ their values."
                    (mark2 (drei-buffer:clone-mark mark1 :right)))
               (insert-sequence mark2 full-attribute-line)
               (drei-buffer:insert-object mark2 #\Newline)
-              (comment-region (syntax view)
+              (drei-syntax:comment-region (drei-syntax:syntax view)
                               mark1
                               mark2)))))))
 
 (defun update-attribute-line (view)
   (replace-attribute-line
-   view (make-attribute-line (syntax view))))
+   view (drei-syntax:make-attribute-line (drei-syntax:syntax view))))
 
 (defun evaluate-attribute-line (view)
   (evaluate-attributes
@@ -334,7 +334,7 @@ file if necessary."
                                               (esa:windows esa:*esa-instance*))
                                      (split-window t))))
                  (setf (drei-buffer:offset (point buffer)) (drei-buffer:offset (point view))
-                       (syntax view) (make-syntax-for-view view (syntax-class-name-for-filepath filepath))
+                       (drei-syntax:syntax view) (make-syntax-for-view view (drei-syntax:syntax-class-name-for-filepath filepath))
                        (file-write-time buffer) (if newp (get-universal-time) (file-write-date filepath))
                        (needs-saving buffer) nil
                        (name buffer) (filepath-filename filepath))

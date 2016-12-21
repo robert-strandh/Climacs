@@ -67,14 +67,14 @@
             (setf low-position (floor (+ low-position 1 high-position) 2)))
      finally (return low-position)))
 
-(define-syntax text-syntax (drei-fundamental-syntax:fundamental-syntax)
+(drei-syntax:define-syntax text-syntax (drei-fundamental-syntax:fundamental-syntax)
   ((paragraphs :initform (make-instance 'flexichain:standard-flexichain))
    (sentence-beginnings :initform (make-instance 'flexichain:standard-flexichain))
    (sentence-endings :initform (make-instance 'flexichain:standard-flexichain)))
   (:name "Text")
   (:pathname-types "text" "txt" "README"))
 
-(defmethod update-syntax values-max-min ((syntax text-syntax) prefix-size suffix-size
+(defmethod drei-syntax:update-syntax values-max-min ((syntax text-syntax) prefix-size suffix-size
                                          &optional begin end)
   (declare (ignore begin end))
   (let* ((buffer (buffer syntax))
@@ -200,7 +200,7 @@
                (drei-buffer:offset (flexichain:element* sentence-endings pos1)))
          t))))
 
-(defmethod syntax-line-indentation ((mark mark) tab-width (syntax text-syntax))
+(defmethod drei-syntax:syntax-line-indentation ((mark mark) tab-width (syntax text-syntax))
   (loop with indentation = 0
         with mark2 = (drei-buffer:clone-mark mark)
         until (drei-buffer:beginning-of-buffer-p mark2)
