@@ -32,7 +32,7 @@ files in the current directory\".")
 ;;; 
 ;;; File/View group classes.
 
-(defclass group (name-mixin)
+(defclass group (esa-utils:name-mixin)
   ())
 
 (defclass group-element (group)
@@ -229,8 +229,8 @@ the file with that name."
 group protocol-specified methods called on the synonym group will
 be forwarded to a group with the same name as `group'."
   (make-instance 'synonym-group
-                 :other-name (name group)
-                 :name (name group)))
+                 :other-name (esa-utils:name group)
+                 :name (esa-utils:name group)))
 
 (defun make-group-element (object)
   "Make a `group-element' object containg `object' as element."
@@ -273,8 +273,8 @@ views created by this macro will be saved and killed after
 `body' has run. Also, `views' will be bound to a list of the
 views containing the files designated by `group' while `body'
 is run."
-  (with-gensyms (views-before views-after view-diff)
-    (once-only (group keep)
+  (esa-utils:with-gensyms (views-before views-after view-diff)
+    (esa-utils:once-only (group keep)
       `(let ((,views-before (views *application-frame*))
              (,group ,group))
          (ensure-group-views ,group)
@@ -295,8 +295,8 @@ designated by the group. `Args' should be two-element lists, with
 the first element bound to the result of evaluating the second
 element. The second element will be evaluated when the group is
 selected to be the active group by the user."
-  (with-gensyms (group)
-   (once-only (name)
+  (esa-utils:with-gensyms (group)
+   (esa-utils:once-only (name)
      `(let ((,name ,name))
         (assert (stringp ,name))
         (setf (gethash ,name *persistent-groups*)
@@ -368,7 +368,7 @@ selected to be the active group by the user."
 	  (t (values string 'string)))))
 
 (define-presentation-method present (object (type group) stream view &key)
-  (let ((name (name object)))
+  (let ((name (esa-utils:name object)))
     (princ name stream)))
 
 (define-presentation-method present ((object synonym-group) (type group) stream view &key)

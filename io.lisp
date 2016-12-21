@@ -28,7 +28,7 @@
   ()
   (:report (lambda (condition stream)
              (format stream "Buffer ~A contains non-character object"
-                     (name (buffer condition)))))
+                     (esa-utils:name (buffer condition)))))
   (:documentation "This error is signalled whenever an attempt is
 made to save a buffer that contains a non-character object."))
 

@@ -58,7 +58,7 @@ contents.")))
 
 (defclass climacs-pane (drei-pane esa:esa-pane-mixin)
   ()
-  (:metaclass modual-class)
+  (:metaclass esa-utils:modual-class)
   (:default-initargs
    :view (make-instance 'textual-drei-syntax-view
           :buffer (make-instance 'climacs-buffer))
@@ -511,9 +511,9 @@ etc."))
     (display-view-status-to-info-pane pane master-pane view)
     (with-text-face (pane :bold)
       (with-output-as-presentation (pane view 'view)
-        (format pane "~A" (subscripted-name view)))
+        (format pane "~A" (esa-utils:subscripted-name view)))
       ;; FIXME: bare 25.
-      (format pane "~V@T" (max (- 25 (length (subscripted-name view))) 1)))
+      (format pane "~V@T" (max (- 25 (length (esa-utils:subscripted-name view))) 1)))
     (display-view-info-to-info-pane pane master-pane view)
     (with-text-family (pane :sans-serif)
       (princ (if (esa:recordingp frame)
@@ -704,7 +704,7 @@ pane to a clone of the view in `orig-pane', provided that
     (handler-case
         (when (and (climacs-core:buffer-of-view-needs-saving view)
                    (handler-case (accept 'boolean
-                                  :prompt (format nil "Save buffer of view: ~a ?" (name view)))
+                                  :prompt (format nil "Save buffer of view: ~a ?" (esa-utils:name view)))
                      (error () (progn (beep)
                                       (esa:display-message "Invalid answer")
                                       (return-from frame-exit nil)))))
@@ -732,5 +732,5 @@ pane to a clone of the view in `orig-pane', provided that
   (setf (esa-buffer:filepath buffer) (pathname filepath)
 	(esa-buffer:file-saved-p buffer) nil
 	(esa-buffer:file-write-time buffer) nil
-	(name buffer) (climacs-core:filepath-filename filepath)
+	(esa-utils:name buffer) (climacs-core:filepath-filename filepath)
 	(esa-buffer:needs-saving buffer) t))

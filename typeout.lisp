@@ -45,7 +45,7 @@ output has changed since it was last replayed.")
                      :documentation "A list (X Y) specifying
 where drawing ended the last time, and where it should start the
 next time. If NIL, no previous position has been recorded."))
-  (:metaclass modual-class)
+  (:metaclass esa-utils:modual-class)
   (:documentation "A noneditable Drei view displaying an output
 record history."))
 
@@ -130,7 +130,7 @@ already existing typeout view by that name first."
   (check-type label string)
   (or (let ((view (find-if #'(lambda (view)
                                (and (typeout-view-p view)
-                                    (string= (name view) label)))
+                                    (string= (esa-utils:name view) label)))
                            (views climacs))))
         (when (and view erase) (blank-typeout-view view))
         view)
@@ -356,7 +356,7 @@ be newly created, and any old overlay will have been deleted."
 `window'. If `erase' is true, the typeout overlay will be newly
 created, and any old overlay will have been deleted."
   (declare (ignore erase))
-  (with-keywords-removed (args (:window))
+  (esa-utils:with-keywords-removed (args (:window))
     `(invoke-with-typeout ,window
                           #'(lambda (,stream)
                               ,@body)
@@ -490,7 +490,7 @@ is the frame manager."
         (with-typeout (menu :erase t :window associated-window)
           (when text-style
             (setf (medium-text-style menu) text-style))
-          (letf (((stream-default-view menu) +textual-menu-view+))
+          (esa-utils:letf (((stream-default-view menu) +textual-menu-view+))
             (menu-choose-from-drawer menu (or presentation-type 'typeout-menu-item)
                                      #'drawer
                                      :cache cache

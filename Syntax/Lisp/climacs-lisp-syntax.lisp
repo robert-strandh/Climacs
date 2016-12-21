@@ -291,17 +291,17 @@ Each newline and following whitespace is replaced by a single space."
                                      view m)
             (show-note-counts notes (second result))
             (when (not (null notes))
-              (show-notes notes (name view)
+              (show-notes notes (esa-utils:name view)
                           (one-line-ify (subseq string 0 (min (length string) 20))))))
           (display-message "No definition at point")))))
 
 (defun compile-file-interactively (view &optional load-p)
   (let ((buffer (buffer view)))
     (cond ((null (esa-buffer:filepath buffer))
-           (esa:display-message "View ~A is not associated with a file" (name view)))
+           (esa:display-message "View ~A is not associated with a file" (esa-utils:name view)))
           (t
            (when (and (esa-buffer:needs-saving buffer)
-                      (accept 'boolean :prompt (format nil "Save buffer ~A ?" (name view))))
+                      (accept 'boolean :prompt (format nil "Save buffer ~A ?" (esa-utils:name view))))
              (climacs-core:save-buffer buffer))
            (let ((*read-base* (base (drei-syntax:syntax view))))
              (multiple-value-bind (result notes)
@@ -309,7 +309,7 @@ Each newline and following whitespace is replaced by a single space."
                                         (esa-buffer:filepath buffer)
                                         (package-at-mark (drei-syntax:syntax view) 0) load-p)
                (show-note-counts notes (second result))
-               (when notes (show-notes notes (name view) ""))))))))
+               (when notes (show-notes notes (esa-utils:name view) ""))))))))
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;
@@ -422,7 +422,7 @@ macros or similar). If no such form can be found, return NIL."
                   (with-drawing-options (stream :ink +dark-blue+
                                                 :text-style (make-text-style :fixed nil nil))
                     (princ (dspec item) stream))))
-           (climacs-gui:with-typeout-view (stream (format-sym "~A ~A" type symbol))
+           (climacs-gui:with-typeout-view (stream (esa-utils:format-sym "~A ~A" type symbol))
              (loop for xref in xrefs
                 do (with-output-as-presentation (stream xref 'xref)
                      (printer xref stream))

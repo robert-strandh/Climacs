@@ -74,7 +74,7 @@
   (:name "Text")
   (:pathname-types "text" "txt" "README"))
 
-(defmethod drei-syntax:update-syntax values-max-min ((syntax text-syntax) prefix-size suffix-size
+(defmethod drei-syntax:update-syntax esa-utils:values-max-min ((syntax text-syntax) prefix-size suffix-size
                                          &optional begin end)
   (declare (ignore begin end))
   (let* ((buffer (buffer syntax))

@@ -21,7 +21,7 @@
                                      stream (view textual-view)
                                      &key acceptably for-context-type)
   (declare (ignore acceptably for-context-type))
-  (princ (subscripted-name object) stream))
+  (princ (esa-utils:subscripted-name object) stream))
 
 (define-presentation-method accept ((type view) stream (view textual-view)
                                     &key (default nil defaultp)
@@ -32,7 +32,7 @@
 			(complete-from-possibilities
 			 so-far (views esa:*esa-instance*) '()
                          :action action
-			 :name-key #'subscripted-name
+			 :name-key #'esa-utils:subscripted-name
 			 :value-key #'identity))
 		      :partial-completers '(#\Space)
 		      :allow-any-input t)
@@ -51,7 +51,7 @@ displayed by a Drei instance."))
 
 (defmethod switch-to-view (pane (name string))
   (let ((view (find name (views (pane-frame pane))
-               :key #'subscripted-name :test #'string=)))
+               :key #'esa-utils:subscripted-name :test #'string=)))
     (switch-to-view
      pane (or view (make-new-view-for-climacs
                     (pane-frame pane) 'textual-drei-syntax-view
@@ -117,7 +117,7 @@ it will be replaced by some other view."))
 
 (defmethod kill-view ((name string))
   (let ((view (find name (views *application-frame*)
-                 :key #'subscripted-name :test #'string=)))
+                 :key #'esa-utils:subscripted-name :test #'string=)))
     (when view (kill-view view))))
 
 (defmethod kill-view ((symbol null))
@@ -337,7 +337,7 @@ file if necessary."
                        (drei-syntax:syntax view) (make-syntax-for-view view (syntax-class-name-for-filepath filepath))
                        (esa-buffer:file-write-time buffer) (if newp (get-universal-time) (file-write-date filepath))
                        (esa-buffer:needs-saving buffer) nil
-                       (name buffer) (filepath-filename filepath))
+                       (esa-utils:name buffer) (filepath-filename filepath))
                  (setf (current-view (esa:current-window)) view)
                  (evaluate-attribute-line view)
                  (setf (esa-buffer:filepath buffer) (pathname filepath)

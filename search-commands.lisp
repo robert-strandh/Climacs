@@ -63,7 +63,7 @@ Entering an empty search string stops the prompting."
     ((view 'view :prompt "View with Query Repace strings"))
   (unless (member view (views esa:*esa-instance*))
     (beep)
-    (esa:display-message "~A not an existing buffer" (name view))
+    (esa:display-message "~A not an existing buffer" (esa-utils:name view))
     (return-from com-multiple-query-replace-from-buffer nil))
   (let* ((buffer (buffer view))
          (contents (drei-buffer:buffer-substring buffer 0 (1- (drei-buffer:size buffer))))
@@ -85,7 +85,7 @@ Entering an empty search string stops the prompting."
 						 (subseq contents start index)))))
     (unless (evenp (length strings))
       (beep)
-      (esa:display-message "Uneven number of strings in ~A" (name buffer))
+      (esa:display-message "Uneven number of strings in ~A" (esa-utils:name buffer))
       (return-from com-multiple-query-replace-from-buffer nil))
     (multiple-query-replace (loop for (string1 string2) on strings by #'cddr
 				  collect (cons string1 string2)))))
@@ -132,7 +132,7 @@ Entering an empty search string stops the prompting."
 	 (string1 (string1 state))
 	 (string1-length (length string1)))
     (drei-buffer:backward-object point string1-length)
-    (replace-one-string point string1-length (string2 state) (no-upper-p string1))
+    (replace-one-string point string1-length (string2 state) (esa-utils:no-upper-p string1))
     (incf occurrences)
     (let ((found (multiple-query-replace-find-next-match
 		  point
@@ -157,7 +157,7 @@ Entering an empty search string stops the prompting."
 	 (string1 (string1 state))
 	 (string1-length (length string1)))
     (drei-buffer:backward-object point string1-length)
-    (replace-one-string point string1-length (string2 state) (no-upper-p string1))
+    (replace-one-string point string1-length (string2 state) (esa-utils:no-upper-p string1))
     (incf occurrences)
     (setf (query-replace-mode (esa:current-window)) nil)))
 
@@ -175,7 +175,7 @@ Entering an empty search string stops the prompting."
 	     (replace-one-string point
 		     string1-length
 		     (string2 state)
-		     (no-upper-p string1))
+		     (esa-utils:no-upper-p string1))
 	     (incf occurrences)
 	     (setf found (multiple-query-replace-find-next-match
 				  point
