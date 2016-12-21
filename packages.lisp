@@ -113,7 +113,6 @@
            #:check-file-times
 
            #:input-from-stream
-           #:save-buffer-to-stream
            #:make-buffer-from-stream
 
            #:group
