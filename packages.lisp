@@ -31,7 +31,7 @@
           :drei-abbrev
           :drei-kill-ring :drei-core :drei :clim-extensions
           :drei-undo :drei-editing
-          :esa-buffer :esa-utils)
+          :esa-utils)
     ;;(:import-from :lisp-string)
     (:export #:climacs                  ; Frame.
              #:*climacs-text-style*
