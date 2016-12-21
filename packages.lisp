@@ -28,7 +28,7 @@
 
 (defpackage :climacs-gui
     (:use :clim-lisp :clim :drei-base
-          :drei-abbrev :drei-syntax
+          :drei-abbrev
           :drei-kill-ring :drei-core :drei :clim-extensions
           :drei-undo :drei-editing
           :esa-buffer :esa-utils)
