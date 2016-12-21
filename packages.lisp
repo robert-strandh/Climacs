@@ -30,8 +30,7 @@
     (:use :clim-lisp :clim :drei-base
           :drei-abbrev
           :drei-kill-ring :drei-core :drei :clim-extensions
-          :drei-undo :drei-editing
-          :esa-utils)
+          :drei-undo :drei-editing)
     ;;(:import-from :lisp-string)
     (:export #:climacs                  ; Frame.
              #:*climacs-text-style*
