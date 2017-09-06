@@ -367,9 +367,9 @@ active."
 (defun make-view-subscript-generator (climacs)
   #'(lambda (name)
       (1+ (reduce #'max (remove name (views climacs)
-                         :test-not #'string= :key #'name)
+                         :test-not #'string= :key #'esa-utils:name)
            :initial-value 0
-           :key #'subscript))))
+           :key #'esa-utils:subscript))))
 
 (defun clone-view-for-climacs (climacs view &rest initargs)
   "Clone `view' and add it to `climacs's list of views."
